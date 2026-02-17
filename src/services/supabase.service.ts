@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = 'https://zuprnalsdigsosonzeme.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHJuYWxzZGlnc29zb256ZW1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNDg3NDMsImV4cCI6MjA4NjkyNDc0M30.HrboOMuhN4jVVYVsjB4I1fzhowH7REbGv0ggnaAML04';
+const SUPABASE_URL = (import.meta as any)?.env?.['SUPABASE_URL'] || 'https://zuprnalsdigsosonzeme.supabase.co';
+const SUPABASE_KEY = (import.meta as any)?.env?.['SUPABASE_KEY'] || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inp1cHJuYWxzZGlnc29zb256ZW1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEzNDg3NDMsImV4cCI6MjA4NjkyNDc0M30.HrboOMuhN4jVVYVsjB4I1fzhowH7REbGv0ggnaAML04';
 
 @Injectable({
     providedIn: 'root'

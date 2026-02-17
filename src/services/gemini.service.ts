@@ -10,9 +10,9 @@ export class GeminiService {
   constructor() {
     try {
       // Tentar obter a chave da API de forma segura (browser-safe)
-      const apiKey = (typeof process !== 'undefined' && process.env?.['API_KEY'])
-        || (import.meta as any)?.env?.['GEMINI_API_KEY']
-        || '';
+      const apiKey = (import.meta as any)?.env?.['GEMINI_API_KEY']
+        || (typeof process !== 'undefined' && process.env?.['API_KEY'])
+        || 'PLACEHOLDER_API_KEY'; // Valor no .env.local
       if (apiKey) {
         this.ai = new GoogleGenAI({ apiKey });
       }
