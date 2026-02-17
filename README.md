@@ -1,78 +1,20 @@
-# AJUDA-
-Plataforma web moderna para conexão entre clientes e especialistas, com agendamento online, pagamentos integrados e dashboard administrativo. Desenvolvido com Angular, Firebase e foco em experiência do usuário.
+<div align="center">
+<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+</div>
 
-🚀 AJUDAÍ 
-Problema resolvido.
-Num instante.
-Videochamadas de 5 minutos com especialistas. Rápido, seguro e sem complicações.
+# Run and deploy your AI Studio app
 
-Aplicação web desenvolvida para conectar clientes a especialistas de forma simples, rápida e segura.
+This contains everything you need to run your app locally.
 
-🎯 Objetivo
+View your app in AI Studio: https://ai.studio/apps/drive/1qD8Ur9Z-8_Ov2bwXx7rVdnAjwk9Jt8DJ
 
-Criar uma plataforma digital onde usuários podem:
+## Run Locally
 
-🔎 Buscar especialistas
+**Prerequisites:**  Node.js
 
-📅 Agendar atendimentos
 
-💳 Realizar pagamentos online
-
-⭐ Avaliar profissionais
-
-👤 Gerenciar perfil e histórico
-
-Especialistas podem:
-
-📊 Gerenciar agenda
-
-💰 Acompanhar ganhos
-
-🛠 Atualizar serviços
-
-📈 Visualizar avaliações
-
-🛠 Tecnologias Utilizadas
-
-Angular 21
-
-TypeScript
-
-Firebase (Auth, Firestore)
-
-Netlify (Deploy)
-
-HTML5 + CSS3
-
-Responsive Design
-
-🌎 Deploy
-
-O projeto está hospedado na plataforma Netlify para entrega contínua e rápida atualização.
-
-💡 Diferenciais
-
-Interface moderna
-
-Experiência fluida
-
-Arquitetura escalável
-
-Preparado para SaaS
-
-Estrutura pronta para monetização
-
-📌 Status do Projeto
-
-🚧 Em desenvolvimento contínuo
-🔥 Evoluindo para versão SaaS completa
-
-Se você quiser, posso criar também:
-
-🔥 versão mais startup / investidor
-
-😎 versão mais simples
-
-🧠 versão técnica para recrutadores
-
-💰 versão focada em SaaS e monetização
+1. Install dependencies:
+   `npm install`
+2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
+3. Run the app:
+   `npm run dev`

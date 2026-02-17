@@ -1,0 +1,8 @@
+{
+  "name": "AJUDAÍ - Micro-Consultoria",
+  "description": "Plataforma de micro-consultoria por vídeo para resolução rápida de problemas.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
