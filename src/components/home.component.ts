@@ -5,17 +5,12 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } 
 import { GeminiService } from '../services/gemini.service';
 import { AuthService } from '../services/auth.service';
 import { ExpertService } from '../services/expert.service';
+import { VoiceRecorderService } from '../services/voice-recorder.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
-  host: {
-    '(document:mousemove)': 'resetInactivityTimer()',
-    '(document:click)': 'resetInactivityTimer()',
-    '(document:keydown)': 'resetInactivityTimer()',
-    '(document:touchstart)': 'resetInactivityTimer()'
-  },
   template: `
     <div class="min-h-screen bg-[#F2F2F7] text-slate-900 font-sans selection:bg-blue-500/30 selection:text-blue-900 flex flex-col relative overflow-hidden">
       
@@ -34,9 +29,9 @@ import { ExpertService } from '../services/expert.service';
         
         <div class="flex items-center gap-4">
           @if (!authService.isLoggedIn()) {
-            <button (click)="initiateGoogleLogin()" class="text-[15px] font-medium text-slate-500 hover:text-blue-600 transition-colors">Entrar</button>
-            <button (click)="initiateGoogleLogin()" class="px-5 py-2 rounded-full bg-slate-900 text-white font-semibold text-[15px] hover:bg-slate-800 transition-all shadow-lg shadow-slate-900/10 active:scale-95">
-              Criar Conta
+            <button (click)="initiateGoogleLogin()" aria-label="Entrar na conta" class="text-[15px] font-medium text-slate-500 hover:text-blue-600 transition-colors">Entrar</button>
+            <button (click)="initiateGoogleLogin()" aria-label="Criar nova conta" class="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold text-[15px] hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+              Aceder com Google
             </button>
           } @else {
             <div class="flex items-center gap-3 cursor-pointer group" (click)="toggleProfile()">
@@ -89,13 +84,25 @@ import { ExpertService } from '../services/expert.service';
               [ngModel]="problemQuery()"
               (ngModelChange)="problemQuery.set($event)"
               (keyup.enter)="analyzeAndSearch()"
-              placeholder="O que precisas de resolver agora?" 
+              [placeholder]="isRecording() ? 'A ouvir o seu problema...' : 'O que precisas de resolver agora?'" 
+              aria-label="Descreva o seu problema para análise"
               class="w-full bg-transparent border-none outline-none py-5 px-4 text-lg font-medium text-slate-900 placeholder:text-slate-400/80 rounded-[2rem]"
             >
-            <div class="pr-2">
+            <div class="pr-2 flex items-center gap-2">
+              <button 
+                (click)="toggleRecording()"
+                [class]="isRecording() ? 'bg-red-500 animate-pulse' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'"
+                aria-label="Gravar áudio"
+                class="rounded-full p-3 transition-all duration-300 shadow-sm flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
+                </svg>
+              </button>
+
               <button 
                 (click)="analyzeAndSearch()"
-                [disabled]="isAnalyzing() || !problemQuery()"
+                [disabled]="isAnalyzing() || !problemQuery() || isRecording()"
+                aria-label="Analisar problema"
                 class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-full p-3 transition-all duration-300 shadow-md hover:scale-105 active:scale-95 flex items-center justify-center">
                 @if (isAnalyzing()) {
                   <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -271,22 +278,6 @@ import { ExpertService } from '../services/expert.service';
               </div>
 
               <div class="p-4 space-y-3">
-                 <!-- Safety Mode Toggle -->
-                 <div class="flex items-center justify-between p-4 bg-slate-50 rounded-2xl mb-1">
-                    <span class="text-sm font-medium text-slate-700 flex items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-1.473-1.473A10.014 10.014 0 0019.542 10C18.268 5.943 14.478 3 10 3a9.958 9.958 0 00-4.512 1.074l-1.78-1.781zm4.261 4.26l1.514 1.515a2.003 2.003 0 012.45 2.45l1.514 1.514a4 4 0 00-5.478-5.478z" clip-rule="evenodd" /><path d="M12.454 16.697L9.75 13.992a4 4 0 01-3.742-3.741L2.335 6.578A9.98 9.98 0 00.458 10c1.274 4.057 5.065 7 9.542 7 .847 0 1.669-.105 2.454-.303z" /></svg>
-                      Modo SOS (Inatividade)
-                    </span>
-                    <button 
-                      (click)="toggleSafetyMode()" 
-                      [class]="authService.currentUser()?.safetyModeEnabled ? 'bg-green-500' : 'bg-slate-300'"
-                      class="w-12 h-7 rounded-full relative transition-colors duration-200">
-                      <div 
-                        [class]="authService.currentUser()?.safetyModeEnabled ? 'translate-x-6' : 'translate-x-1'"
-                        class="w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200"></div>
-                    </button>
-                 </div>
-
                  <button (click)="openReferral()" class="w-full py-4 px-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-bold flex items-center justify-between shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
                     <span class="flex items-center gap-3">
                        <span class="bg-white/20 p-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
@@ -440,44 +431,6 @@ import { ExpertService } from '../services/expert.service';
            </div>
         </div>
       }
-
-      <!-- 5. EMERGENCY SOS OVERLAY -->
-      @if (showEmergency()) {
-        <div class="fixed inset-0 z-[9999] bg-red-600 flex flex-col items-center justify-center p-6 text-white animate-in zoom-in duration-300">
-          <div class="absolute inset-0 bg-red-700/50 animate-pulse"></div>
-          
-          <div class="relative z-10 w-full max-w-sm text-center">
-            <div class="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-8 shadow-2xl animate-bounce">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </div>
-            
-            <h1 class="text-4xl font-black mb-2 tracking-tight">EMERGÊNCIA?</h1>
-            <p class="text-white/80 font-medium mb-10 text-lg">Parece que não estás a usar a app.</p>
-            
-            <div class="space-y-4">
-              <a href="tel:112" class="block w-full bg-white text-red-600 py-5 rounded-2xl font-black text-2xl shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3">
-                 <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
-                 LIGAR 112
-              </a>
-              
-              <div class="grid grid-cols-2 gap-4">
-                 <a href="tel:190" class="block w-full bg-red-800/50 backdrop-blur-sm border-2 border-white/20 text-white py-4 rounded-xl font-bold text-xl hover:bg-white/20 transition-all text-center">
-                    Policia 190
-                 </a>
-                 <a href="tel:192" class="block w-full bg-red-800/50 backdrop-blur-sm border-2 border-white/20 text-white py-4 rounded-xl font-bold text-xl hover:bg-white/20 transition-all text-center">
-                    Saúde 192
-                 </a>
-              </div>
-            </div>
-
-            <button (click)="dismissEmergency()" class="mt-12 text-white/70 font-semibold underline text-sm uppercase tracking-wide hover:text-white">
-              Voltar à aplicação
-            </button>
-          </div>
-        </div>
-      }
     </div>
   `,
   styles: [`
@@ -538,7 +491,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   showProfileModal = signal(false);
   showReferralModal = signal(false);
   showProviderModal = signal(false);
-  showEmergency = signal(false);
 
   // Email/Password Auth state
   isRegisterMode = signal(false);
@@ -549,10 +501,6 @@ export class HomeComponent implements OnInit, OnDestroy {
   authError = signal('');
   authSuccess = signal('');
 
-  // Inactivity Detection
-  inactivityTimer: any;
-  readonly TIMEOUT_MS = 60000; // 60 seconds of inactivity triggers emergency (for demo)
-
   // Custom Category Logic
   isCustomCategory = signal(false);
 
@@ -560,7 +508,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   private geminiService = inject(GeminiService);
   public authService = inject(AuthService);
   public expertService = inject(ExpertService);
+  public recorderService = inject(VoiceRecorderService);
   private fb: FormBuilder = inject(FormBuilder);
+
+  isRecording = this.recorderService.isRecording;
 
   // Forms
   providerForm: FormGroup = this.fb.group({
@@ -572,34 +523,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     address: ['', [Validators.required, Validators.minLength(5)]]
   });
 
-  // Listen for user activity
-  resetInactivityTimer() {
-    // Always clear existing timer first
-    clearTimeout(this.inactivityTimer);
-
-    if (this.showEmergency()) return; // Don't reset if already showing emergency
-
-    // Only set new timer if "Safety Mode" is enabled by the user
-    const user = this.authService.currentUser();
-    if (user?.safetyModeEnabled) {
-      this.inactivityTimer = setTimeout(() => {
-        // Only show if user is NOT in a call or busy (simplified check)
-        if (!this.showLoginModal() && !this.showProfileModal()) {
-          this.showEmergency.set(true);
-        }
-      }, this.TIMEOUT_MS);
-    }
-  }
-
-  toggleSafetyMode() {
-    const current = this.authService.currentUser()?.safetyModeEnabled ?? false;
-    this.authService.updateProfile({ safetyModeEnabled: !current });
-
-    // If turning off, we just cleared it via updateProfile/resetInactivity interaction implicitly or explicitly here
-    // If turning on, we restart logic
-    this.resetInactivityTimer();
-  }
-
   ngOnInit() {
     // Simulate live fluctuation of users
     this.countInterval = setInterval(() => {
@@ -609,19 +532,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         return newVal > 45 ? newVal : 45; // Min 45
       });
     }, 4000);
-
-    // Start inactivity tracking
-    this.resetInactivityTimer();
   }
 
   ngOnDestroy() {
     if (this.countInterval) clearInterval(this.countInterval);
-    if (this.inactivityTimer) clearTimeout(this.inactivityTimer);
-  }
-
-  dismissEmergency() {
-    this.showEmergency.set(false);
-    this.resetInactivityTimer();
   }
 
   reload() {
@@ -647,6 +561,41 @@ export class HomeComponent implements OnInit, OnDestroy {
         score: analysis?.matchScore || 0
       }
     });
+  }
+
+  async toggleRecording() {
+    if (this.isRecording()) {
+      const audioBlob = await this.recorderService.stopRecording();
+      this.analyzeVoice(audioBlob);
+    } else {
+      try {
+        await this.recorderService.startRecording();
+      } catch (err) {
+        alert('Não foi possível aceder ao microfone. Verifique as permissões.');
+      }
+    }
+  }
+
+  async analyzeVoice(blob: Blob) {
+    this.isAnalyzing.set(true);
+    try {
+      const analysis = await this.geminiService.analyzeVoiceProblem(blob);
+      if (analysis) {
+        this.problemQuery.set(analysis.transcription || '');
+        this.router.navigate(['/results'], {
+          queryParams: {
+            q: analysis.transcription || 'Pedido de voz',
+            category: analysis.category || 'Outros',
+            tip: analysis.quickTip || '',
+            score: analysis.matchScore || 0
+          }
+        });
+      }
+    } catch (err) {
+      console.error('Error analyzing voice:', err);
+    } finally {
+      this.isAnalyzing.set(false);
+    }
   }
 
   // --- Auth & Actions ---

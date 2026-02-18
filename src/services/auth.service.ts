@@ -14,7 +14,6 @@ export interface User {
   trialMinutesLeft: number;
   phoneNumber?: string;
   address?: string;
-  safetyModeEnabled?: boolean;
   onboardingCompleted: boolean;
 }
 
@@ -90,9 +89,8 @@ export class AuthService {
           is_expert: false,
           balance: 0,
           commission_earned: 0,
-          trial_minutes_left: 60,
-          onboarding_completed: false,
-          safety_mode_enabled: false
+          trial_minutes_left: 1,
+          onboarding_completed: false
         };
 
         const { data: created } = await this.supabaseService.createProfile(newProfile);
@@ -123,10 +121,9 @@ export class AuthService {
       balance: parseFloat(profile.balance) || 0,
       referralCode: profile.referral_code || this.generateReferralCode(),
       commissionEarned: parseFloat(profile.commission_earned) || 0,
-      trialMinutesLeft: profile.trial_minutes_left ?? 60,
+      trialMinutesLeft: profile.trial_minutes_left ?? 1,
       phoneNumber: profile.phone_number,
       address: profile.address,
-      safetyModeEnabled: profile.safety_mode_enabled,
       onboardingCompleted: profile.onboarding_completed
     };
   }
@@ -224,7 +221,6 @@ export class AuthService {
     if (updates.balance !== undefined) dbUpdates.balance = updates.balance;
     if (updates.phoneNumber !== undefined) dbUpdates.phone_number = updates.phoneNumber;
     if (updates.address !== undefined) dbUpdates.address = updates.address;
-    if (updates.safetyModeEnabled !== undefined) dbUpdates.safety_mode_enabled = updates.safetyModeEnabled;
     if (updates.onboardingCompleted !== undefined) dbUpdates.onboarding_completed = updates.onboardingCompleted;
     if (updates.trialMinutesLeft !== undefined) dbUpdates.trial_minutes_left = updates.trialMinutesLeft;
     if (updates.commissionEarned !== undefined) dbUpdates.commission_earned = updates.commissionEarned;
@@ -259,15 +255,15 @@ export class AuthService {
     await this.updateProfile({ balance: user.balance + amount });
   }
 
-  processSessionPayment(durationInSeconds: number, pricePerMinCents: number): { cost: number, minutesUsed: number } {
+  processSessionPayment(durationInSeconds: number, pricePerMinCents: number): { cost: number, minutesUsed: number, platformCommission: number } {
     const user = this.currentUser();
-    if (!user) return { cost: 0, minutesUsed: 0 };
+    if (!user) return { cost: 0, minutesUsed: 0, platformCommission: 0 };
 
     const durationInMinutes = Math.ceil(durationInSeconds / 60);
     let billableMinutes = durationInMinutes;
     let freeMinutesUsed = 0;
 
-    // 1. Consumir trial gratuito
+    // 1. Consumir trial gratuito (agora 1 minuto para novos usuários)
     if (user.trialMinutesLeft > 0) {
       if (user.trialMinutesLeft >= durationInMinutes) {
         freeMinutesUsed = durationInMinutes;
@@ -278,16 +274,24 @@ export class AuthService {
       }
     }
 
-    // 2. Calcular custo
+    // 2. Calcular custo total do usuário
     const costInEur = (billableMinutes * pricePerMinCents) / 100;
 
-    // 3. Atualizar no Supabase
+    // 3. Calcular comissão da plataforma (5%)
+    // A plataforma fica com 5% do valor total gerado pelo trabalho concluído
+    const platformCommission = costInEur * 0.05;
+
+    // 4. Atualizar no Supabase
     this.updateProfile({
       trialMinutesLeft: Math.max(0, user.trialMinutesLeft - freeMinutesUsed),
       balance: Math.max(0, user.balance - costInEur)
     });
 
-    return { cost: costInEur, minutesUsed: freeMinutesUsed };
+    // Nota: Em uma implementação real, o valor da comissão seria transferido 
+    // para uma conta da plataforma e o restante para o especialista.
+    console.log(`[AJUDAÍ] Trabalho concluído. Comissão da plataforma (5%): ${platformCommission.toFixed(2)}€`);
+
+    return { cost: costInEur, minutesUsed: freeMinutesUsed, platformCommission };
   }
 
   async logout() {

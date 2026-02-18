@@ -3,10 +3,13 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ExpertService, Expert } from '../services/expert.service';
 import { AuthService } from '../services/auth.service';
+import { StorageService } from '../services/storage.service';
 
 interface ChatMessage {
   sender: 'me' | 'expert';
-  text: string;
+  text?: string;
+  type: 'text' | 'image' | 'video' | 'audio' | 'sticker';
+  url?: string;
   time: Date;
 }
 
@@ -142,14 +145,47 @@ interface ChatMessage {
                <div [class]="msg.sender === 'me' ? 'flex justify-end' : 'flex justify-start'">
                  <div [class]="msg.sender === 'me' ? 'bg-blue-600 text-white rounded-[1.2rem] rounded-br-sm' : 'bg-white/10 text-white rounded-[1.2rem] rounded-bl-sm'" 
                       class="max-w-[85%] px-4 py-2.5 text-[13px] leading-relaxed shadow-sm backdrop-blur-sm">
-                   {{ msg.text }}
+                   
+                   @if (msg.type === 'text') {
+                     {{ msg.text }}
+                   } @else if (msg.type === 'image') {
+                     <img [src]="msg.url" class="rounded-lg max-w-full h-auto cursor-pointer" (click)="window.open(msg.url, '_blank')">
+                   } @else if (msg.type === 'video') {
+                     <video [src]="msg.url" controls class="rounded-lg max-w-full h-auto"></video>
+                   } @else if (msg.type === 'audio') {
+                     <audio [src]="msg.url" controls class="w-full h-8"></audio>
+                   } @else if (msg.type === 'sticker') {
+                     <div class="text-4xl animate-bounce">{{ msg.text }}</div>
+                   }
+                   
                  </div>
                </div>
              }
           </div>
 
+          <!-- Rich Controls Overlay -->
+          @if (showStickers()) {
+            <div class="p-3 bg-white/10 backdrop-blur-md border-t border-white/10 grid grid-cols-5 gap-2 animate-in slide-in-from-bottom-5">
+              @for (s of stickers; track s) {
+                <button (click)="sendSticker(s)" class="text-2xl hover:scale-125 transition-transform">{{ s }}</button>
+              }
+            </div>
+          }
+
           <!-- Input -->
-          <div class="p-3 bg-white/5 rounded-b-[2rem]">
+          <div class="p-3 bg-white/5 rounded-b-[2rem] flex flex-col gap-2">
+             <div class="flex items-center gap-2">
+               <button (click)="fileInput.click()" class="p-2 text-white/60 hover:text-white transition-colors" title="Fotos/Vídeos">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" /></svg>
+               </button>
+               <button (click)="toggleRecording()" [class]="isRecording() ? 'text-red-500 animate-pulse' : 'text-white/60'" class="p-2 hover:text-white transition-colors" title="Gravar Áudio">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" /></svg>
+               </button>
+               <button (click)="showStickers.set(!showStickers())" class="p-2 text-white/60 hover:text-white transition-colors" title="Figurinhas">
+                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5"><path stroke-linecap="round" stroke-linejoin="round" d="M15.182 15.182a4.5 4.5 0 0 1-6.364 0M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM9.75 9.75c0 .414-.168.75-.375.75S9 10.164 9 9.75 9.168 9 9.375 9s.375.336.375.75Zm-.375 0h.008v.01h-.008V9.75Zm5.625 0c0 .414-.168.75-.375.75s-.375-.336-.375-.75.168-.75.375-.75.375.336.375.75Zm-.375 0h.008v.01h-.008V9.75Z" /></svg>
+               </button>
+             </div>
+
              <div class="relative flex items-center bg-black/30 rounded-full border border-white/5 focus-within:ring-2 focus-within:ring-blue-500/50 transition-all">
                <input 
                  #chatInput
@@ -161,13 +197,14 @@ interface ChatMessage {
                  class="w-full bg-transparent text-white pl-4 pr-12 py-3 text-sm placeholder:text-slate-500 focus:outline-none">
                <button 
                 (click)="sendMessage()" 
-                [disabled]="!currentMessage()"
+                [disabled]="!currentMessage() && !isRecording()"
                 class="absolute right-1.5 p-2 bg-blue-600 rounded-full text-white hover:bg-blue-500 disabled:opacity-0 transition-all scale-90 hover:scale-100">
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4">
                     <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
                   </svg>
                </button>
              </div>
+             <input type="file" #fileInput (change)="onFileSelected($event)" accept="image/*,video/*" class="hidden">
           </div>
         </div>
       }
@@ -306,49 +343,57 @@ interface ChatMessage {
 export class VideoRoomComponent implements OnInit, OnDestroy {
   @ViewChild('selfVideo') selfVideo!: ElementRef<HTMLVideoElement>;
   @ViewChild('chatContainer') chatContainer!: ElementRef;
-  
+
   expertId = signal<string | null>(null);
   expert = signal<Expert | undefined>(undefined);
-  
+
   micEnabled = signal(true);
   cameraEnabled = signal(true);
   isChatOpen = signal(false);
   showReceipt = signal(false);
   showEndConfirmation = signal(false);
-  
+
   messages = signal<ChatMessage[]>([]);
   currentMessage = signal('');
-  
+
   elapsedSeconds = signal(0);
   timerInterval: any;
-  finalReceipt = signal<{ cost: number, minutesUsed: number } | null>(null);
-  
+  finalReceipt = signal<{ cost: number, minutesUsed: number, platformCommission: number } | null>(null);
+
   private expertService = inject(ExpertService);
   public authService = inject(AuthService);
+  private storageService = inject(StorageService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
   stream: MediaStream | null = null;
+  mediaRecorder: MediaRecorder | null = null;
+  audioChunks: Blob[] = [];
+  isRecording = signal(false);
+  showStickers = signal(false);
+
+  stickers = ['❤️', '👍', '🔥', '🚀', '⭐', '😂', '👋', '💡', '✅', '❌'];
+  public window = window;
 
   // Calculates current estimated cost (visual only)
   currentCost = computed(() => {
     const expert = this.expert();
     if (!expert) return 0;
     const minutes = this.elapsedSeconds() / 60;
-    
+
     // Check if free trial covers it visualy
     const user = this.authService.currentUser();
     if (user && user.trialMinutesLeft > minutes) {
-       return 0;
+      return 0;
     }
 
     return (minutes * expert.pricePerMin) / 100;
   });
-  
+
   isFreeMode = computed(() => {
-     const user = this.authService.currentUser();
-     const minutes = this.elapsedSeconds() / 60;
-     return user && user.trialMinutesLeft > minutes;
+    const user = this.authService.currentUser();
+    const minutes = this.elapsedSeconds() / 60;
+    return user && user.trialMinutesLeft > minutes;
   });
 
   formattedTime = computed(() => {
@@ -360,20 +405,20 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
 
   async ngOnInit() {
     this.expertId.set(this.route.snapshot.paramMap.get('id'));
-    
+
     // Security Check: Login & Balance OR Trial
     if (!this.authService.isLoggedIn()) {
-       this.router.navigate(['/']);
-       return;
+      this.router.navigate(['/']);
+      return;
     }
     const user = this.authService.currentUser();
     const hasBalance = user && user.balance > 0;
     const hasTrial = user && user.trialMinutesLeft > 0;
 
     if (!user || (!hasBalance && !hasTrial)) {
-       alert('Saldo insuficiente. Por favor carregue a carteira.');
-       this.router.navigate(['/results']);
-       return;
+      alert('Saldo insuficiente. Por favor carregue a carteira.');
+      this.router.navigate(['/results']);
+      return;
     }
 
     if (this.expertId()) {
@@ -431,17 +476,86 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   sendMessage() {
     const text = this.currentMessage().trim();
     if (!text) return;
-    
-    this.messages.update(msgs => [...msgs, { sender: 'me', text, time: new Date() }]);
+
+    this.addMessage({ sender: 'me', text, type: 'text', time: new Date() });
     this.currentMessage.set('');
-    
-    setTimeout(() => this.scrollToBottom(), 50);
 
     // Auto-reply simulation
     setTimeout(() => {
-       this.messages.update(msgs => [...msgs, { sender: 'expert', text: 'Entendido. Pode mostrar o problema de outro ângulo?', time: new Date() }]);
-       setTimeout(() => this.scrollToBottom(), 50);
+      this.addMessage({ sender: 'expert', text: 'Entendido. Pode mostrar o problema de outro ângulo?', type: 'text', time: new Date() });
     }, 3000);
+  }
+
+  addMessage(msg: ChatMessage) {
+    this.messages.update(msgs => [...msgs, msg]);
+    setTimeout(() => this.scrollToBottom(), 50);
+  }
+
+  async onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const type = file.type.startsWith('image/') ? 'image' : 'video';
+    const extension = file.name.split('.').pop() || (type === 'image' ? 'jpg' : 'mp4');
+    const user = this.authService.currentUser();
+    if (!user) return;
+
+    const path = this.storageService.generatePath(user.id, type + 's', extension);
+    const url = await this.storageService.uploadFile(path, file);
+
+    if (url) {
+      this.addMessage({ sender: 'me', type, url, time: new Date() });
+    }
+  }
+
+  async toggleRecording() {
+    if (this.isRecording()) {
+      this.stopRecording();
+    } else {
+      await this.startRecording();
+    }
+  }
+
+  async startRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      this.mediaRecorder = new MediaRecorder(stream);
+      this.audioChunks = [];
+
+      this.mediaRecorder.ondataavailable = (event) => {
+        this.audioChunks.push(event.data);
+      };
+
+      this.mediaRecorder.onstop = async () => {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        const user = this.authService.currentUser();
+        if (user) {
+          const path = this.storageService.generatePath(user.id, 'audios', 'webm');
+          const url = await this.storageService.uploadFile(path, audioBlob);
+          if (url) {
+            this.addMessage({ sender: 'me', type: 'audio', url, time: new Date() });
+          }
+        }
+        stream.getTracks().forEach(track => track.stop());
+      };
+
+      this.mediaRecorder.start();
+      this.isRecording.set(true);
+    } catch (err) {
+      console.error('Error recording audio:', err);
+    }
+  }
+
+  stopRecording() {
+    if (this.mediaRecorder) {
+      this.mediaRecorder.stop();
+      this.isRecording.set(false);
+    }
+  }
+
+  sendSticker(sticker: string) {
+    this.addMessage({ sender: 'me', type: 'sticker', text: sticker, time: new Date() });
+    this.showStickers.set(false);
   }
 
   scrollToBottom() {
@@ -461,13 +575,13 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   confirmEndCall() {
     this.showEndConfirmation.set(false);
     if (this.timerInterval) clearInterval(this.timerInterval);
-    
+
     // Process Payment via Auth Service (Handles Trial vs Balance)
     const receipt = this.authService.processSessionPayment(
-      this.elapsedSeconds(), 
+      this.elapsedSeconds(),
       this.expert()?.pricePerMin || 0
     );
-    
+
     this.finalReceipt.set(receipt);
     this.showReceipt.set(true);
   }
