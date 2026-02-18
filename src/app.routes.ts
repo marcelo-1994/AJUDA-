@@ -7,5 +7,6 @@ export const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'results', component: ExpertListComponent },
   { path: 'room/:id', component: VideoRoomComponent },
+  { path: 'sos', component: HomeComponent },
   { path: '**', redirectTo: '' }
 ];

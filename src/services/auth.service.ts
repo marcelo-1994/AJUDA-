@@ -15,6 +15,8 @@ export interface User {
   phoneNumber?: string;
   address?: string;
   onboardingCompleted: boolean;
+  personalizedCallLink?: string;
+  joinCommunity?: boolean;
 }
 
 @Injectable({
@@ -124,7 +126,9 @@ export class AuthService {
       trialMinutesLeft: profile.trial_minutes_left ?? 1,
       phoneNumber: profile.phone_number,
       address: profile.address,
-      onboardingCompleted: profile.onboarding_completed
+      onboardingCompleted: profile.onboarding_completed,
+      personalizedCallLink: profile.personalized_link || `${window.location.origin}/#/sos?ref=${profile.id}`,
+      joinCommunity: profile.join_community ?? false
     };
   }
 
@@ -224,6 +228,8 @@ export class AuthService {
     if (updates.onboardingCompleted !== undefined) dbUpdates.onboarding_completed = updates.onboardingCompleted;
     if (updates.trialMinutesLeft !== undefined) dbUpdates.trial_minutes_left = updates.trialMinutesLeft;
     if (updates.commissionEarned !== undefined) dbUpdates.commission_earned = updates.commissionEarned;
+    if (updates.personalizedCallLink !== undefined) dbUpdates.personalized_link = updates.personalizedCallLink;
+    if (updates.joinCommunity !== undefined) dbUpdates.join_community = updates.joinCommunity;
 
     const { data } = await this.supabaseService.updateProfile(user.id, dbUpdates);
     if (data) {

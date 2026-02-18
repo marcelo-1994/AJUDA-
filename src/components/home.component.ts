@@ -1,6 +1,6 @@
 import { Component, inject, signal, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } from '@angular/forms';
 import { GeminiService } from '../services/gemini.service';
 import { AuthService } from '../services/auth.service';
@@ -70,6 +70,21 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
           Rápido, seguro e sem complicações.
         </p>
 
+        <!-- SOS URGENT BUTTON (PRIORITY) -->
+        <div class="w-full max-w-2xl mb-8 animate-fade-in-up delay-250">
+          <button (click)="activateSOS()" 
+            class="w-full py-6 bg-red-600 hover:bg-red-500 text-white rounded-[2rem] font-black text-2xl md:text-3xl shadow-[0_12px_40px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_50px_rgba(220,38,38,0.4)] transition-all active:scale-95 flex items-center justify-center gap-4 group">
+            <span class="relative flex h-5 w-5">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-5 w-5 bg-white"></span>
+            </span>
+            MODO SOS: AJUDA AGORA
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 group-hover:translate-x-2 transition-transform">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+            </svg>
+          </button>
+        </div>
+
         <!-- iOS Spotlight Search Input -->
         <div class="w-full max-w-2xl relative group z-20 animate-fade-in-up delay-300">
           <div class="absolute -inset-1 bg-gradient-to-r from-blue-100 to-purple-100 rounded-[2rem] blur opacity-50 group-focus-within:opacity-100 transition duration-500"></div>
@@ -130,6 +145,26 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
           }
         </div>
       </main>
+
+      <!-- Community Features (Optional) -->
+      @if (authService.isLoggedIn()) {
+        <div class="w-full max-w-4xl mx-auto px-6 mb-12 animate-fade-in-up delay-600">
+           <div class="bg-white/40 backdrop-blur-xl border border-white/40 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center gap-8 shadow-sm">
+              <div class="flex-1 text-center md:text-left">
+                 <h3 class="text-2xl font-bold text-slate-900 mb-2">Comunidade AJUDAÍ</h3>
+                 <p class="text-slate-500 font-medium font-sm">Decida como quer participar. Quem faz o sistema funcionar é você.</p>
+              </div>
+              <div class="flex gap-4">
+                 <button (click)="toggleCommunity()" [class]="authService.currentUser()?.joinCommunity ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-600'" class="px-6 py-3 rounded-2xl font-bold transition-all hover:scale-105 active:scale-95">
+                    {{ authService.currentUser()?.joinCommunity ? 'Membro Ativo' : 'Aderir à Comunidade' }}
+                 </button>
+                 <button (click)="openCommunityGroup()" class="px-6 py-3 bg-white text-slate-900 border border-slate-200 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+                    Ver Grupo
+                 </button>
+              </div>
+           </div>
+        </div>
+      }
 
       <!-- Bottom marketing bar -->
       <div class="w-full text-center py-6 pb-4 z-10">
@@ -277,8 +312,19 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
                  }
               </div>
 
-              <div class="p-4 space-y-3">
-                 <button (click)="openReferral()" class="w-full py-4 px-5 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl font-bold flex items-center justify-between shadow-lg shadow-green-500/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+              <div class="space-y-4 mb-8">
+                 <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100">
+                    <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Seu Link de Chamada Personalizado</h4>
+                    <div class="flex items-center gap-2 bg-white rounded-xl p-3 border border-blue-200">
+                       <input readonly [value]="authService.currentUser()?.personalizedCallLink" class="bg-transparent text-[13px] font-mono text-slate-600 w-full outline-none">
+                       <button (click)="copyCallLink()" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
+                          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 0 1-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 0 1 1.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 0 0-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 0 1-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 0 0-3.375-3.375h-1.5a1.125 1.125 0 0 1-1.125-1.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H9.75" /></svg>
+                       </button>
+                    </div>
+                    <p class="text-[10px] text-blue-500 mt-2 font-medium">Partilhe este link para que outros se possam ligar a si instantaneamente.</p>
+                 </div>
+
+                 <button (click)="openReferral()" class="w-full py-4 px-6 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-between transition-all group">
                     <span class="flex items-center gap-3">
                        <span class="bg-white/20 p-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
                        Ganhar Comissões
@@ -505,6 +551,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   isCustomCategory = signal(false);
 
   private router = inject(Router);
+  private route = inject(ActivatedRoute);
   private geminiService = inject(GeminiService);
   public authService = inject(AuthService);
   public expertService = inject(ExpertService);
@@ -524,6 +571,18 @@ export class HomeComponent implements OnInit, OnDestroy {
   });
 
   ngOnInit() {
+    // Check for SOS or Referral params
+    this.route.queryParams.subscribe(params => {
+      if (params['sos'] === 'true' || this.router.url.includes('/sos')) {
+        this.problemQuery.set('AJUDA URGENTE: SOLICITAÇÃO SOS');
+        // If there's a reference to a specific expert/user
+        if (params['ref']) {
+          // Handle direct call logic or just log it for now
+          console.log('Direct call reference:', params['ref']);
+        }
+      }
+    });
+
     // Simulate live fluctuation of users
     this.countInterval = setInterval(() => {
       const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
@@ -544,6 +603,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   setQuery(text: string) {
     this.problemQuery.set(text);
+  }
+
+  async activateSOS() {
+    this.problemQuery.set('Urgência Total: Preciso de ajuda agora!');
+    await this.analyzeAndSearch();
   }
 
   async analyzeAndSearch() {
@@ -668,6 +732,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.showProfileModal.update(v => !v);
   }
 
+  copyCallLink() {
+    const link = this.authService.currentUser()?.personalizedCallLink;
+    if (link) {
+      navigator.clipboard.writeText(link);
+      alert('Link de chamada copiado!');
+    }
+  }
+
   openReferral() {
     if (!this.authService.isLoggedIn()) {
       this.initiateGoogleLogin();
@@ -740,5 +812,14 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.showProviderModal.set(false);
       alert(`Parabéns! O teu perfil de especialista em "${category}" está ativo.`);
     }
+  }
+
+  async toggleCommunity() {
+    const currentStatus = this.authService.currentUser()?.joinCommunity;
+    await this.authService.updateProfile({ joinCommunity: !currentStatus });
+  }
+
+  openCommunityGroup() {
+    window.open('https://chat.whatsapp.com/demo-group', '_blank');
   }
 }

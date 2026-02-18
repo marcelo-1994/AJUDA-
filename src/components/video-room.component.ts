@@ -44,33 +44,43 @@ interface ChatMessage {
       <div class="absolute top-0 left-0 right-0 p-4 z-30 flex justify-between items-start pointer-events-none">
         
         <!-- Timer & Cost (Dynamic Island Style) -->
-        <div class="pointer-events-auto bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-1.5 pr-5 flex items-center gap-3 shadow-2xl transition-all hover:bg-black/50">
-           
-           @if (isFreeMode()) {
-              <!-- FREE MODE BADGE -->
-              <div class="bg-amber-400 w-8 h-8 rounded-full flex items-center justify-center relative shadow-lg shadow-amber-500/50">
-                <div class="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-50"></div>
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-amber-900 relative z-10">
-                  <path fill-rule="evenodd" d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.75a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .913-.143Z" clip-rule="evenodd" />
-                </svg>
-              </div>
-              <div class="flex flex-col">
-                <span class="text-white font-mono font-bold text-sm leading-none">{{ formattedTime() }}</span>
-                <span class="text-amber-400 text-[10px] font-bold uppercase tracking-wider leading-none mt-1">MODO GRÁTIS</span>
-              </div>
-           } @else {
-             <!-- PAID MODE BADGE -->
-             <div class="bg-red-500/90 w-8 h-8 rounded-full flex items-center justify-center relative">
-               <div class="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
-               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-white relative z-10">
-                 <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
-               </svg>
-             </div>
-             <div class="flex flex-col">
-               <span class="text-white font-mono font-bold text-sm leading-none">{{ formattedTime() }}</span>
-               <span class="text-emerald-400 text-[10px] font-bold uppercase tracking-wider leading-none mt-1">{{ currentCost() | number:'1.2-2' }}€</span>
-             </div>
-           }
+        <div class="pointer-events-auto flex items-center gap-3">
+          <div class="bg-black/40 backdrop-blur-xl border border-white/10 rounded-[2rem] p-1.5 pr-5 flex items-center gap-3 shadow-2xl transition-all hover:bg-black/50">
+             
+             @if (isFreeMode()) {
+                <!-- FREE MODE BADGE -->
+                <div class="bg-amber-400 w-8 h-8 rounded-full flex items-center justify-center relative shadow-lg shadow-amber-500/50">
+                  <div class="absolute inset-0 bg-amber-400 rounded-full animate-ping opacity-50"></div>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-amber-900 relative z-10">
+                    <path fill-rule="evenodd" d="M14.615 1.595a.75.75 0 0 1 .359.852L12.982 9.75h7.268a.75.75 0 0 1 .548 1.262l-10.5 11.25a.75.75 0 0 1-1.272-.71l1.992-7.302H3.75a.75.75 0 0 1-.548-1.262l10.5-11.25a.75.75 0 0 1 .913-.143Z" clip-rule="evenodd" />
+                  </svg>
+                </div>
+                <div class="flex flex-col">
+                  <span [class.text-red-400]="isExpiring()" class="text-white font-mono font-bold text-sm leading-none transition-colors">{{ formattedTime() }}</span>
+                  <span class="text-amber-400 text-[10px] font-bold uppercase tracking-wider leading-none mt-1">MODO GRÁTIS</span>
+                </div>
+             } @else {
+               <!-- PAID MODE BADGE -->
+               <div class="bg-red-500/90 w-8 h-8 rounded-full flex items-center justify-center relative">
+                 <div class="absolute inset-0 bg-red-500 rounded-full animate-ping opacity-75"></div>
+                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-4 h-4 text-white relative z-10">
+                   <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd" />
+                 </svg>
+               </div>
+               <div class="flex flex-col">
+                 <span [class.text-red-400]="isExpiring()" class="text-white font-mono font-bold text-sm leading-none transition-colors">{{ formattedTime() }}</span>
+                 <span class="text-emerald-400 text-[10px] font-bold uppercase tracking-wider leading-none mt-1">{{ currentCost() | number:'1.2-2' }}€</span>
+               </div>
+             }
+          </div>
+
+          <!-- EXTEND BUTTON -->
+          <button (click)="extendTime()" class="pointer-events-auto bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 px-4 text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+            + 5 MIN
+          </button>
         </div>
         
         <!-- Expert Badge -->
@@ -357,6 +367,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   currentMessage = signal('');
 
   elapsedSeconds = signal(0);
+  remainingSeconds = signal(300); // 5 minutes initial
   timerInterval: any;
   finalReceipt = signal<{ cost: number, minutesUsed: number, platformCommission: number } | null>(null);
 
@@ -390,6 +401,8 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
     return (minutes * expert.pricePerMin) / 100;
   });
 
+  isExpiring = computed(() => this.remainingSeconds() < 60);
+
   isFreeMode = computed(() => {
     const user = this.authService.currentUser();
     const minutes = this.elapsedSeconds() / 60;
@@ -397,7 +410,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   });
 
   formattedTime = computed(() => {
-    const secs = this.elapsedSeconds();
+    const secs = this.remainingSeconds();
     const mins = Math.floor(secs / 60);
     const remainingSecs = secs % 60;
     return `${mins.toString().padStart(2, '0')}:${remainingSecs.toString().padStart(2, '0')}`;
@@ -434,6 +447,14 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
     // Start Timer
     this.timerInterval = setInterval(() => {
       this.elapsedSeconds.update(v => v + 1);
+      this.remainingSeconds.update(v => {
+        if (v <= 1) {
+          // Auto-confirm end call if time runs out
+          this.confirmEndCall();
+          return 0;
+        }
+        return v - 1;
+      });
     }, 1000);
 
     await this.setupCamera();
@@ -584,6 +605,11 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
 
     this.finalReceipt.set(receipt);
     this.showReceipt.set(true);
+  }
+
+  extendTime() {
+    this.remainingSeconds.update(v => v + 300); // Add 5 minutes
+    alert('Bónus: Mais 5 minutos adicionados à chamada!');
   }
 
   finish() {
