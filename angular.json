@@ -25,6 +25,9 @@
                 "input": "assets",
                 "output": "assets"
               }
+            ],
+            "styles": [
+              "index.css"
             ]
           },
           "configurations": {

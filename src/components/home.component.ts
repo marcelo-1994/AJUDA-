@@ -643,6 +643,10 @@ export class HomeComponent implements OnInit, OnDestroy {
       if (params['sos'] === 'true' || this.router.url.includes('/sos')) {
         this.problemQuery.set('AJUDA URGENTE: SOLICITAÇÃO SOS');
       }
+
+      if (params['openWallet'] === 'true') {
+        this.showWalletModal.set(true);
+      }
     });
 
     // Simulate live fluctuation of users

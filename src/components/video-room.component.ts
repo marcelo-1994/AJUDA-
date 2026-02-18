@@ -359,6 +359,35 @@ interface ChatMessage {
         </div>
       }
 
+      <!-- Trial Ended Modal -->
+      @if (showTrialEndedModal()) {
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-900/90 backdrop-blur-xl animate-in fade-in duration-300">
+           <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl p-8 text-center animate-in zoom-in-95 duration-300">
+              <div class="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-8 h-8 text-amber-600">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+              </div>
+              <h2 class="text-2xl font-black text-slate-900 mb-2">O seu minuto grátis terminou!</h2>
+              <p class="text-slate-500 font-medium text-sm mb-8 leading-relaxed">
+                Esperamos que o teste tenha sido útil. Para continuar a sua micro-consulta, escolha uma opção:
+              </p>
+              
+              <div class="space-y-3">
+                 <button (click)="goToWallet()" class="w-full py-4 bg-blue-600 text-white font-bold rounded-2xl hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
+                    Adicionar Saldo
+                 </button>
+                 <button (click)="showPlans()" class="w-full py-4 bg-slate-100 text-slate-900 font-bold rounded-2xl hover:bg-slate-200 transition-all active:scale-95">
+                    Ver Planos de Assinatura
+                 </button>
+                 <button (click)="confirmEndCall()" class="w-full py-4 text-red-500 font-bold hover:bg-red-50 rounded-2xl transition-all">
+                    Terminar Chamada
+                 </button>
+              </div>
+           </div>
+        </div>
+      }
+
     </div>
   `
 })
@@ -383,6 +412,8 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   timerInterval: any;
   finalReceipt = signal<{ cost: number, minutesUsed: number, platformCommission: number } | null>(null);
   showTransitionAlert = signal(false);
+  showTrialEndedModal = signal(false);
+  isFirstMinuteTrial = signal(false);
 
   private expertService = inject(ExpertService);
   public authService = inject(AuthService);
@@ -443,8 +474,12 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
 
     if (!user || (!hasBalance && !hasTrial)) {
       alert('Saldo insuficiente. Por favor carregue a carteira.');
-      this.router.navigate(['/results']);
+      this.router.navigate(['/']);
       return;
+    }
+
+    if (user.trialMinutesLeft > 0) {
+      this.isFirstMinuteTrial.set(true);
     }
 
     if (this.expertId()) {
@@ -474,6 +509,11 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
       }
 
       this.remainingSeconds.update(v => {
+        if (this.isFirstMinuteTrial() && this.elapsedSeconds() >= 60) {
+          this.pauseForTrialEnd();
+          return v;
+        }
+
         if (v <= 1) {
           // Auto-confirm end call if time runs out
           this.confirmEndCall();
@@ -603,6 +643,19 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   sendSticker(sticker: string) {
     this.addMessage({ sender: 'me', type: 'sticker', text: sticker, time: new Date() });
     this.showStickers.set(false);
+  }
+
+  pauseForTrialEnd() {
+    if (this.timerInterval) clearInterval(this.timerInterval);
+    this.showTrialEndedModal.set(true);
+  }
+
+  goToWallet() {
+    this.router.navigate(['/'], { queryParams: { openWallet: 'true' } });
+  }
+
+  showPlans() {
+    alert('Planos Premium: \n1. Bronze: 5€/mês (10 min)\n2. Prata: 15€/mês (40 min)\n3. Ouro: 30€/mês (Horas Ilimitadas)\n\nEm breve disponível para subscrição direta!');
   }
 
   scrollToBottom() {
