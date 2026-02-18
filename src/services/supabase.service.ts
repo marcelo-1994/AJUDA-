@@ -40,10 +40,19 @@ export class SupabaseService {
 
     async signInWithGoogle() {
         if (!this.supabase) throw new Error('Supabase not initialized');
+
+        // Em produção, o origin será a URL do Vercel. 
+        // Em dev, será http://localhost:3000
+        const redirectTo = window.location.origin;
+
         return this.supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin
+                redirectTo: redirectTo,
+                queryParams: {
+                    access_type: 'offline',
+                    prompt: 'consent',
+                }
             }
         });
     }
@@ -97,6 +106,15 @@ export class SupabaseService {
             .from('profiles')
             .insert(profile)
             .select()
+            .single();
+    }
+
+    async getProfileByReferralCode(code: string) {
+        if (!this.supabase) return { data: null, error: 'Not initialized' };
+        return this.supabase
+            .from('profiles')
+            .select('id')
+            .eq('referral_code', code.toUpperCase())
             .single();
     }
 

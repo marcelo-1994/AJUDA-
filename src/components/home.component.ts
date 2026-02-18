@@ -37,7 +37,7 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
             <div class="flex items-center gap-3 cursor-pointer group" (click)="toggleProfile()">
                <div class="text-right hidden sm:block">
                  <div class="text-[13px] font-semibold text-slate-900 leading-none">{{ authService.currentUser()?.name }}</div>
-                 <div class="text-[11px] text-slate-500 font-medium leading-none mt-1">Saldo: {{ authService.currentUser()?.balance | number:'1.2-2' }}€</div>
+                 <div class="text-[11px] text-blue-600 font-bold leading-none mt-1 hover:underline" (click)="$event.stopPropagation(); openWallet()">Saldo: {{ authService.currentUser()?.balance | number:'1.2-2' }}€</div>
                </div>
                <img [src]="authService.currentUser()?.avatar" class="w-9 h-9 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors">
             </div>
@@ -192,6 +192,61 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
             </a>
          </div>
       </footer>
+
+      <!-- 5. Wallet / Deposit Modal -->
+      @if (showWalletModal()) {
+        <div class="fixed inset-0 z-[70] flex items-center justify-center p-6 animate-in fade-in duration-300">
+           <div class="absolute inset-0 bg-black/60 backdrop-blur-md" (click)="showWalletModal.set(false)"></div>
+           
+           <div class="bg-white w-full max-w-sm rounded-[2.5rem] shadow-2xl overflow-hidden relative animate-zoom-in p-8">
+              @if (!isPixSuccess()) {
+                <div class="text-center">
+                  <h2 class="text-2xl font-bold text-slate-900 mb-2">Recarregar Carteira</h2>
+                  <p class="text-slate-500 text-sm mb-6">Escolha o valor que deseja depositar para continuar as suas consultas.</p>
+                  
+                  <div class="grid grid-cols-3 gap-3 mb-8">
+                    @for (amount of [5, 10, 20]; track amount) {
+                      <button 
+                        (click)="selectDeposit(amount)" 
+                        [class]="depositAmount() === amount ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-600 border-slate-200'"
+                        class="py-3 rounded-2xl border font-bold transition-all active:scale-95">
+                        {{ amount }}€
+                      </button>
+                    }
+                  </div>
+
+                  @if (!isProcessingPix()) {
+                    <div class="bg-slate-50 rounded-2xl p-6 mb-6 border border-slate-100">
+                       <div class="bg-white p-3 rounded-xl shadow-sm inline-block mb-3">
+                          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=AJUDAI_PIX_PAYMENT" class="w-24 h-24">
+                       </div>
+                       <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-4">Pagamento via Pix / Instantâneo</p>
+                       <button (click)="startPixPayment()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">
+                          Confirmar Pagamento
+                       </button>
+                    </div>
+                  } @else {
+                    <div class="py-12 flex flex-col items-center gap-4">
+                       <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                       <p class="text-slate-900 font-bold animate-pulse">A confirmar pagamento...</p>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <div class="text-center py-6 animate-in zoom-in duration-500">
+                   <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
+                   </div>
+                   <h2 class="text-3xl font-black text-slate-900 mb-2">Sucesso!</h2>
+                   <p class="text-slate-500 font-medium mb-6">Saldo de <span class="text-blue-600 font-bold">{{ depositAmount() }}€</span> adicionado.</p>
+                   <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-slate-400 text-xs font-bold uppercase tracking-widest">
+                      A fechar em {{ pixCountdown() }}s
+                   </div>
+                </div>
+              }
+           </div>
+        </div>
+      }
 
       <!-- --- MODALS (iOS Sheets) --- -->
 
@@ -537,6 +592,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   showProfileModal = signal(false);
   showReferralModal = signal(false);
   showProviderModal = signal(false);
+  showWalletModal = signal(false);
+
+  // Deposit state
+  depositAmount = signal(10);
+  isProcessingPix = signal(false);
+  isPixSuccess = signal(false);
+  pixCountdown = signal(3);
 
   // Email/Password Auth state
   isRegisterMode = signal(false);
@@ -573,13 +635,13 @@ export class HomeComponent implements OnInit, OnDestroy {
   ngOnInit() {
     // Check for SOS or Referral params
     this.route.queryParams.subscribe(params => {
+      if (params['ref']) {
+        console.log('Referral code detected:', params['ref']);
+        localStorage.setItem('ajudai_pending_ref', params['ref']);
+      }
+
       if (params['sos'] === 'true' || this.router.url.includes('/sos')) {
         this.problemQuery.set('AJUDA URGENTE: SOLICITAÇÃO SOS');
-        // If there's a reference to a specific expert/user
-        if (params['ref']) {
-          // Handle direct call logic or just log it for now
-          console.log('Direct call reference:', params['ref']);
-        }
       }
     });
 
@@ -695,8 +757,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.authSuccess.set('');
 
     try {
+      const ref = localStorage.getItem('ajudai_pending_ref') || undefined;
+
       if (this.isRegisterMode()) {
-        const user = await this.authService.signUpWithEmail(email, password, name);
+        const user = await this.authService.signUpWithEmail(email, password, name, ref);
         if (user) {
           this.authSuccess.set('Conta criada com sucesso! Verifica o teu email para confirmar.');
           this.authEmail.set('');
@@ -704,7 +768,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           this.authName.set('');
         }
       } else {
-        const user = await this.authService.loginWithEmail(email, password);
+        const user = await this.authService.loginWithEmail(email, password, ref);
         if (user) {
           this.showLoginModal.set(false);
           this.authEmail.set('');
@@ -719,13 +783,25 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   async confirmGoogleLogin() {
-    await this.authService.loginWithGoogle();
-    this.showLoginModal.set(false);
+    try {
+      this.authLoading.set(true);
+      await this.authService.loginWithGoogle();
+      // O redirect vai acontecer aqui.
+    } catch (error: any) {
+      this.authError.set(error?.message || 'Erro ao conectar com Google.');
+      this.authLoading.set(false);
+    }
   }
 
   async confirmFacebookLogin() {
-    await this.authService.loginWithFacebook();
-    this.showLoginModal.set(false);
+    try {
+      this.authLoading.set(true);
+      await this.authService.loginWithFacebook();
+      // O redirect vai acontecer aqui.
+    } catch (error: any) {
+      this.authError.set(error?.message || 'Erro ao conectar com Facebook.');
+      this.authLoading.set(false);
+    }
   }
 
   toggleProfile() {
@@ -821,5 +897,41 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   openCommunityGroup() {
     window.open('https://chat.whatsapp.com/demo-group', '_blank');
+  }
+
+  // --- Wallet / Deposit Logic ---
+
+  openWallet() {
+    this.showProfileModal.set(false);
+    this.showWalletModal.set(true);
+    this.isPixSuccess.set(false);
+    this.isProcessingPix.set(false);
+  }
+
+  selectDeposit(amount: number) {
+    this.depositAmount.set(amount);
+  }
+
+  async startPixPayment() {
+    this.isProcessingPix.set(true);
+    // Simular processamento do Pix
+    setTimeout(() => {
+      this.isProcessingPix.set(false);
+      this.isPixSuccess.set(true);
+      this.finishDeposit();
+    }, 2500);
+  }
+
+  async finishDeposit() {
+    // Contagem regressiva de sucesso
+    this.pixCountdown.set(3);
+    const interval = setInterval(() => {
+      this.pixCountdown.update(v => v - 1);
+      if (this.pixCountdown() <= 0) {
+        clearInterval(interval);
+        this.authService.addBalance(this.depositAmount());
+        this.showWalletModal.set(false);
+      }
+    }, 1000);
   }
 }

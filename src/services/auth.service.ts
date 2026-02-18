@@ -17,6 +17,7 @@ export interface User {
   onboardingCompleted: boolean;
   personalizedCallLink?: string;
   joinCommunity?: boolean;
+  referredBy?: string;
 }
 
 @Injectable({
@@ -57,8 +58,11 @@ export class AuthService {
 
       // 3. Observar mudanças de autenticação
       this.supabaseService.onAuthStateChange(async (event: string, session: any) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          await this.loadOrCreateProfile(session.user);
+        console.log(`[AuthService] Auth Event: ${event}`);
+        if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && session?.user) {
+          const pendingRef = localStorage.getItem('ajudai_pending_ref');
+          await this.loadOrCreateProfile(session.user, pendingRef || undefined);
+          if (pendingRef) localStorage.removeItem('ajudai_pending_ref');
         } else if (event === 'SIGNED_OUT') {
           this.currentUser.set(null);
           localStorage.removeItem('ajudai_user');
@@ -72,7 +76,7 @@ export class AuthService {
   /**
    * Carrega o perfil do Supabase ou cria um novo se não existir.
    */
-  private async loadOrCreateProfile(authUser: any): Promise<User | null> {
+  private async loadOrCreateProfile(authUser: any, referralCode?: string): Promise<User | null> {
     try {
       const { data: profile, error } = await this.supabaseService.getProfile(authUser.id);
 
@@ -83,6 +87,15 @@ export class AuthService {
         return user;
       } else {
         // Criar perfil novo
+        let referredById = null;
+        if (referralCode) {
+          const { data: referrer } = await this.supabaseService.getProfileByReferralCode(referralCode);
+          if (referrer) {
+            referredById = referrer.id;
+            console.log(`[AuthService] User referred by: ${referredById}`);
+          }
+        }
+
         const newProfile = {
           auth_id: authUser.id,
           name: authUser.user_metadata?.full_name || authUser.email?.split('@')[0] || 'Usuário',
@@ -92,7 +105,8 @@ export class AuthService {
           balance: 0,
           commission_earned: 0,
           trial_minutes_left: 1,
-          onboarding_completed: false
+          onboarding_completed: false,
+          referred_by: referredById
         };
 
         const { data: created } = await this.supabaseService.createProfile(newProfile);
@@ -128,20 +142,21 @@ export class AuthService {
       address: profile.address,
       onboardingCompleted: profile.onboarding_completed,
       personalizedCallLink: profile.personalized_link || `${window.location.origin}/#/sos?ref=${profile.id}`,
-      joinCommunity: profile.join_community ?? false
+      joinCommunity: profile.join_community ?? false,
+      referredBy: profile.referred_by
     };
   }
 
   /**
    * Login com Email e Senha via Supabase.
    */
-  async loginWithEmail(email: string, password: string): Promise<User | null> {
+  async loginWithEmail(email: string, password: string, referralCode?: string): Promise<User | null> {
     const { data, error } = await this.supabaseService.signInWithEmail(email, password);
     if (error) {
       throw new Error(error.message);
     }
     if (data.user) {
-      return this.loadOrCreateProfile(data.user);
+      return this.loadOrCreateProfile(data.user, referralCode);
     }
     return null;
   }
@@ -149,46 +164,37 @@ export class AuthService {
   /**
    * Registro com Email e Senha via Supabase.
    */
-  async signUpWithEmail(email: string, password: string, name: string): Promise<User | null> {
+  async signUpWithEmail(email: string, password: string, name: string, referralCode?: string): Promise<User | null> {
     const { data, error } = await this.supabaseService.signUpWithEmail(email, password);
     if (error) {
       throw new Error(error.message);
     }
     if (data.user) {
       // Criar perfil inicial com o nome fornecido
-      return this.loadOrCreateProfile({ ...data.user, user_metadata: { full_name: name } });
+      return this.loadOrCreateProfile({ ...data.user, user_metadata: { full_name: name } }, referralCode);
     }
     return null;
   }
 
   /**
    * Login com Google OAuth via Supabase.
+   * Nota: Este método redireciona o navegador, portanto o retorno acontece via onAuthStateChange após o redirect.
    */
-  async loginWithGoogle(): Promise<User> {
+  async loginWithGoogle(): Promise<void> {
     const { error } = await this.supabaseService.signInWithGoogle();
     if (error) {
       throw new Error(error.message);
     }
-    // O perfil será carregado via onAuthStateChange.
-    // Retorna um placeholder enquanto o redirect acontece.
-    return new Promise((resolve) => {
-      const checkUser = setInterval(() => {
-        const user = this.currentUser();
-        if (user) {
-          clearInterval(checkUser);
-          resolve(user);
-        }
-      }, 200);
-      // Timeout de segurança (10s)
-      setTimeout(() => clearInterval(checkUser), 10000);
-    });
   }
 
   /**
    * Login com Facebook OAuth via Supabase.
+   * Nota: Redireciona o navegador.
    */
-  async loginWithFacebook(): Promise<User> {
+  async loginWithFacebook(): Promise<void> {
     const client = this.supabaseService.getClient();
+    if (!client) throw new Error('Supabase client not initialized');
+
     const { error } = await client.auth.signInWithOAuth({
       provider: 'facebook',
       options: { redirectTo: window.location.origin }
@@ -196,16 +202,6 @@ export class AuthService {
     if (error) {
       throw new Error(error.message);
     }
-    return new Promise((resolve) => {
-      const checkUser = setInterval(() => {
-        const user = this.currentUser();
-        if (user) {
-          clearInterval(checkUser);
-          resolve(user);
-        }
-      }, 200);
-      setTimeout(() => clearInterval(checkUser), 10000);
-    });
   }
 
   /**
@@ -258,7 +254,31 @@ export class AuthService {
   async addBalance(amount: number) {
     const user = this.currentUser();
     if (!user) return;
+
+    // Atualizar saldo do usuário
     await this.updateProfile({ balance: user.balance + amount });
+
+    // Lógica de Comissão: Se o usuário foi indicado, o padrinho ganha 5%
+    if (user.referredBy) {
+      try {
+        const commissionAmount = amount * 0.05;
+        const { data: referrerProfile } = await this.supabaseService.getProfile(user.referredBy);
+
+        if (referrerProfile) {
+          const newReferrerBalance = (parseFloat(referrerProfile.balance) || 0) + commissionAmount;
+          const newReferrerCommission = (parseFloat(referrerProfile.commission_earned) || 0) + commissionAmount;
+
+          await this.supabaseService.updateProfile(user.referredBy, {
+            balance: newReferrerBalance,
+            commission_earned: newReferrerCommission
+          });
+
+          console.log(`[AuthService] Commission of ${commissionAmount} awarded to referrer ${user.referredBy}`);
+        }
+      } catch (err) {
+        console.error('Erro ao processar comissão:', err);
+      }
+    }
   }
 
   processSessionPayment(durationInSeconds: number, pricePerMinCents: number): { cost: number, minutesUsed: number, platformCommission: number } {

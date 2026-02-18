@@ -126,6 +126,18 @@ interface ChatMessage {
           </div>
         }
       </div>
+      
+      <!-- Transition Alert (Floating Badge) -->
+      @if (showTransitionAlert()) {
+        <div class="absolute top-24 left-1/2 -translate-x-1/2 z-50 animate-in slide-in-from-top-10 duration-500">
+          <div class="bg-amber-400 text-amber-950 px-6 py-3 rounded-2xl font-bold shadow-2xl flex items-center gap-3 border border-amber-300">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
+              <path fill-rule="evenodd" d="M9.401 3.003c.115-.283.392-.468.699-.468h3.8c.307 0 .584.185.699.468l2.126 5.247H21a.75.75 0 0 1 0 1.5h-2.126l-2.126 5.247a.75.75 0 0 1-.699.468h-3.8a.75.75 0 0 1-.699-.468L9.401 9.75H3a.75.75 0 0 1 0-1.5h6.401l2.126-5.247ZM12 11.25a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Z" clip-rule="evenodd" />
+            </svg>
+            O seu minuto grátis terminou. A chamada agora é paga.
+          </div>
+        </div>
+      }
 
       <!-- Chat Overlay (Glass Panel) -->
       @if (isChatOpen()) {
@@ -370,6 +382,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   remainingSeconds = signal(300); // 5 minutes initial
   timerInterval: any;
   finalReceipt = signal<{ cost: number, minutesUsed: number, platformCommission: number } | null>(null);
+  showTransitionAlert = signal(false);
 
   private expertService = inject(ExpertService);
   public authService = inject(AuthService);
@@ -444,9 +457,22 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
       return;
     }
 
+    // Calcular tempo total disponível (Trial + Saldo)
+    const trialSecs = (user!.trialMinutesLeft || 0) * 60;
+    const pricePerMin = this.expert()?.pricePerMin || 100; // default 1€/min
+    const balanceSecs = Math.floor((user!.balance * 100 / pricePerMin) * 60);
+    this.remainingSeconds.set(trialSecs + balanceSecs);
+
     // Start Timer
     this.timerInterval = setInterval(() => {
+      const wasFree = this.isFreeMode();
       this.elapsedSeconds.update(v => v + 1);
+
+      if (wasFree && !this.isFreeMode()) {
+        this.showTransitionAlert.set(true);
+        setTimeout(() => this.showTransitionAlert.set(false), 5000);
+      }
+
       this.remainingSeconds.update(v => {
         if (v <= 1) {
           // Auto-confirm end call if time runs out
