@@ -50,6 +50,15 @@ import { PaymentGatewayService } from '../services/payment.service';
       <!-- Main Content -->
       <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center w-full max-w-4xl mx-auto mt-[-40px]">
         
+        <!-- What is AJUDA Í Explanation -->
+        <div class="mb-8 animate-fade-in-up">
+           <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">O que é o AJUDA Í?</span>
+           <p class="text-slate-600 text-sm font-medium mt-3 max-w-md mx-auto leading-relaxed">
+             A plataforma que te liga a especialistas prontos a ajudar <span class="text-slate-900 font-bold">via vídeo</span>. 
+             Resolve problemas de canalização, informática, beleza e muito mais, num instante.
+           </p>
+        </div>
+
         <!-- Live Indicator Pill -->
         <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/60 backdrop-blur-md border border-white/40 rounded-full shadow-sm mb-8 animate-fade-in-up">
            <span class="relative flex h-2.5 w-2.5">
@@ -147,6 +156,85 @@ import { PaymentGatewayService } from '../services/payment.service';
           }
         </div>
       </main>
+
+
+
+      <!-- SOCIAL FEED SECTION -->
+      <div class="w-full max-w-2xl mx-auto px-6 mb-12 animate-fade-in-up delay-700">
+         
+         <!-- Stories Header -->
+         <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-slate-900">Histórias</h3>
+            <button class="text-blue-600 text-xs font-bold">Ver tudo</button>
+         </div>
+
+         <!-- Stories -->
+         <div class="flex gap-4 overflow-x-auto pb-4 mb-8 scrollbar-hide">
+           <div class="flex flex-col items-center gap-2 min-w-[70px]">
+              <div class="w-[66px] h-[66px] rounded-full bg-blue-50 border-2 border-dashed border-blue-400 p-1 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors">
+                 <div class="w-full h-full bg-slate-200 rounded-full flex items-center justify-center text-blue-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                 </div>
+              </div>
+              <span class="text-[11px] font-bold text-slate-600">Tu</span>
+           </div>
+
+           @for (story of stories; track story.name) {
+             <div class="flex flex-col items-center gap-2 min-w-[70px] cursor-pointer group">
+                <div class="w-[66px] h-[66px] rounded-full p-0.5 bg-gradient-to-tr from-yellow-400 via-red-500 to-fuchsia-600 group-hover:scale-105 transition-transform shadow-md">
+                   <div class="w-full h-full rounded-full border-2 border-white overflow-hidden">
+                     <img [src]="story.image" class="w-full h-full object-cover">
+                   </div>
+                </div>
+                <span class="text-[11px] font-medium text-slate-600 truncate w-16 text-center">{{ story.name }}</span>
+             </div>
+           }
+         </div>
+
+         <!-- Feed Header -->
+         <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-bold text-slate-900">Na Comunidade</h3>
+            <button class="text-xs font-bold text-slate-400">Recentes</button>
+         </div>
+
+         <!-- Feed -->
+         <div class="flex flex-col gap-6">
+           @for (post of feedPosts; track post.author) {
+              <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                 <div class="flex items-center gap-3 mb-4">
+                    <img [src]="post.avatar" class="w-10 h-10 rounded-full object-cover shadow-sm">
+                    <div class="text-left">
+                       <div class="font-bold text-slate-900 text-sm">{{ post.author }}</div>
+                       <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Especialista Verificado</div>
+                    </div>
+                    <button class="ml-auto text-blue-600 text-xs font-bold px-3 py-1 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors">Seguir</button>
+                 </div>
+                 
+                 <div class="rounded-2xl overflow-hidden mb-4 shadow-sm">
+                    <img [src]="post.image" class="w-full h-56 object-cover hover:scale-105 transition-transform duration-700">
+                 </div>
+                 
+                 <p class="text-left text-sm text-slate-600 font-medium leading-relaxed mb-4 px-1">
+                    {{ post.content }}
+                 </p>
+
+                 <div class="flex items-center gap-6 text-slate-400 text-xs font-bold px-1 border-t border-slate-50 pt-3">
+                    <button class="flex items-center gap-1.5 hover:text-red-500 transition-colors group">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                       {{ post.likes }}
+                    </button>
+                    <button class="flex items-center gap-1.5 hover:text-blue-500 transition-colors">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                       Comentar
+                    </button>
+                    <button class="ml-auto hover:text-slate-600">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                    </button>
+                 </div>
+              </div>
+           }
+         </div>
+      </div>
 
       <!-- Community Features (Optional) -->
       @if (authService.isLoggedIn()) {
@@ -663,6 +751,31 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // Custom Category Logic
   isCustomCategory = signal(false);
+
+  // Social Feed Data
+  stories = [
+    { name: 'Ana', image: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
+    { name: 'João', image: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
+    { name: 'Maria', image: 'https://i.pravatar.cc/150?u=a04258114e29026302d' },
+    { name: 'Pedro', image: 'https://i.pravatar.cc/150?u=a04258114e29026708c' },
+  ];
+
+  feedPosts = [
+    {
+      author: 'Carlos Eletricista',
+      avatar: 'https://i.pravatar.cc/150?u=a04258a2462d826712d',
+      content: 'Dica rápida: Se o disjuntor vai abaixo, verifiquem primeiro se há muitos aparelhos ligados na mesma tomada!',
+      likes: 24,
+      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500&q=80'
+    },
+    {
+      author: 'Sofia Design',
+      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d',
+      content: 'Antes e depois desta sala! Pequenos detalhes como almofadas fazem toda a diferença.',
+      likes: 56,
+      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80'
+    }
+  ];
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);

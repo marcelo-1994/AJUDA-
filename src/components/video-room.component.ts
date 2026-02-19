@@ -76,11 +76,11 @@ interface ChatMessage {
           </div>
 
           <!-- EXTEND BUTTON -->
-          <button (click)="extendTime()" class="pointer-events-auto bg-blue-600 hover:bg-blue-500 text-white rounded-full py-2 px-4 text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2">
+          <button (click)="extendTime()" class="pointer-events-auto bg-emerald-500 hover:bg-emerald-600 text-white rounded-full py-2 px-4 text-xs font-bold shadow-lg transition-all active:scale-95 flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3.228-9.941a.75.75 0 0 1 .75-1.299l.871.5.871-.5a.75.75 0 1 1 .75 1.299l-.871.5.871-.5a.75.75 0 0 1 .75 1.299l-.871.5.871-.5a.75.75 0 0 1 .75 1.299l-.871.5.871-.5a.75.75 0 0 1 .75 1.299l-.871.5.871-.5a.75.75 0 0 1 .75 1.299l-.871.5.871-.5a.75.75 0 0 1 .75 1.299l-.871.5.871-.5a.75.75 0 0 1 .75 1.299l-5.197-3z" />
             </svg>
-            + 5 MIN
+            + Tempo
           </button>
         </div>
         
@@ -693,8 +693,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   }
 
   extendTime() {
-    this.remainingSeconds.update(v => v + 300); // Add 5 minutes
-    alert('Bónus: Mais 5 minutos adicionados à chamada!');
+    this.goToWallet();
   }
 
   finish() {

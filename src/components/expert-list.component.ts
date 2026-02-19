@@ -106,22 +106,51 @@ import { CurrencyService } from '../services/currency.service';
                     <span class="px-2.5 py-1 bg-slate-100 text-slate-500 text-[11px] font-bold uppercase tracking-wide rounded-md">{{ spec }}</span>
                   }
                 </div>
-              </div>
+                </div>
 
-              <div class="mt-auto z-10">
+                <div class="mt-4 flex gap-2">
+                  <div class="flex-1 bg-slate-50 rounded-xl p-2 text-center border border-slate-100">
+                     <div class="text-[10px] text-slate-400 font-bold uppercase">Resposta</div>
+                     <div class="font-bold text-slate-700 text-sm">~5 min</div>
+                  </div>
+                  <div class="flex-1 bg-slate-50 rounded-xl p-2 text-center border border-slate-100">
+                     <div class="text-[10px] text-slate-400 font-bold uppercase">Aulas</div>
+                     <div class="font-bold text-slate-700 text-sm">{{ expert.reviews > 10 ? '100+' : expert.reviews }}</div>
+                  </div>
+                </div>
+
+
+              <div class="mt-auto z-10 grid grid-cols-3 gap-2">
+                <!-- Video Call -->
                 <button 
                   (click)="prepareConsultation(expert)"
                   [disabled]="!expert.isOnline"
-                  class="w-full py-3.5 px-4 rounded-xl font-bold flex items-center justify-center gap-2 transition-all active:scale-[0.98]"
-                  [class]="expert.isOnline ? 'bg-slate-900 text-white hover:bg-slate-800 shadow-xl shadow-slate-900/10' : 'bg-slate-100 text-slate-400 cursor-not-allowed'">
-                  @if (expert.isOnline) {
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
-                      <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
-                    </svg>
-                    <span>Ligar Agora</span>
-                  } @else {
-                    <span>Indisponível</span>
-                  }
+                  class="flex flex-col items-center justify-center py-3 rounded-xl transition-all active:scale-95"
+                  [class]="expert.isOnline ? 'bg-slate-900 text-white shadow-lg shadow-slate-900/10' : 'bg-slate-100 text-slate-400 opacity-50'">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                  </svg>
+                  <span class="text-[10px] font-bold">Vídeo</span>
+                </button>
+
+                <!-- Schedule -->
+                <button 
+                  (click)="openSchedule(expert)"
+                  class="flex flex-col items-center justify-center py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all active:scale-95">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 9v7.5" />
+                  </svg>
+                  <span class="text-[10px] font-bold">Agendar</span>
+                </button>
+
+                <!-- Message -->
+                <button 
+                  (click)="openMessage(expert)"
+                  class="flex flex-col items-center justify-center py-3 bg-white border border-slate-200 text-slate-700 rounded-xl hover:bg-slate-50 transition-all active:scale-95">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 mb-1">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.129.166 2.27.293 3.423.379.35.026.67.21.865.501L12 21l2.755-4.133a1.14 1.14 0 0 1 .865-.501 48.172 48.172 0 0 0 3.423-.379c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018Z" />
+                  </svg>
+                  <span class="text-[10px] font-bold">Chat</span>
                 </button>
               </div>
             </div>
@@ -262,6 +291,100 @@ import { CurrencyService } from '../services/currency.service';
            </div>
         </div>
       }
+      <!-- SCHEDULE MODAL -->
+      @if (showScheduleModal()) {
+        <div class="fixed inset-0 z-[60] flex items-center justify-center p-6">
+           <div class="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity" (click)="showScheduleModal.set(false)"></div>
+           <div class="bg-white w-full max-w-sm rounded-[2rem] shadow-2xl p-6 relative animate-zoom-in">
+              <h3 class="text-xl font-bold text-slate-900 mb-4">Agendar com {{ selectedExpertForAction()?.name }}</h3>
+              
+              <div class="space-y-4">
+                 <div>
+                   <label class="text-sm font-bold text-slate-500 uppercase tracking-wide">Data</label>
+                   <div class="flex gap-2 mt-2 overflow-x-auto pb-2">
+                     @for (day of ['Hoje', 'Amanhã', 'Seg', 'Ter']; track day) {
+                       <button class="px-4 py-2 rounded-xl bg-slate-50 border border-slate-200 text-sm font-bold text-slate-600 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-600 transition-colors shrink-0">
+                         {{ day }}
+                       </button>
+                     }
+                   </div>
+                 </div>
+
+                 <div>
+                   <label class="text-sm font-bold text-slate-500 uppercase tracking-wide">Horário</label>
+                   <div class="grid grid-cols-3 gap-2 mt-2">
+                     @for (time of ['09:00', '10:30', '14:00', '15:30', '17:00']; track time) {
+                        <button class="py-2 rounded-lg border border-slate-200 text-sm font-medium hover:bg-blue-600 hover:text-white transition-colors">
+                          {{ time }}
+                        </button>
+                     }
+                   </div>
+                 </div>
+              </div>
+
+              <div class="mt-6 flex gap-3">
+                 <button (click)="showScheduleModal.set(false)" class="flex-1 py-3 text-slate-500 font-bold hover:bg-slate-50 rounded-xl">Cancelar</button>
+                 <button (click)="confirmSchedule()" class="flex-1 py-3 bg-slate-900 text-white font-bold rounded-xl shadow-lg">Confirmar</button>
+              </div>
+           </div>
+        </div>
+      }
+
+      <!-- MESSAGE MODAL -->
+      @if (showMessageModal()) {
+        <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-6">
+           <div class="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity" (click)="showMessageModal.set(false)"></div>
+           <div class="bg-white w-full sm:max-w-md h-[80vh] sm:h-auto sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl flex flex-col animate-slide-up sm:animate-zoom-in overflow-hidden">
+              
+              <!-- Header -->
+              <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
+                 <div class="flex items-center gap-3">
+                    <img [src]="selectedExpertForAction()?.avatarUrl" class="w-10 h-10 rounded-full bg-slate-100 object-cover">
+                    <div>
+                      <h3 class="font-bold text-slate-900 leading-tight">{{ selectedExpertForAction()?.name }}</h3>
+                      <p class="text-xs text-green-500 font-bold flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Online
+                      </p>
+                    </div>
+                 </div>
+                 <button (click)="showMessageModal.set(false)" class="p-2 bg-slate-50 rounded-full text-slate-400 hover:text-slate-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                 </button>
+              </div>
+
+              <!-- Chat Area (Mock) -->
+              <div class="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4">
+                 <div class="flex justify-center">
+                    <span class="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Hoje</span>
+                 </div>
+                 
+                 <!-- Expert Msg -->
+                 <div class="flex gap-3 max-w-[85%]">
+                    <img [src]="selectedExpertForAction()?.avatarUrl" class="w-8 h-8 rounded-full bg-slate-200 mt-auto">
+                    <div class="bg-white p-3 rounded-2xl rounded-bl-none shadow-sm text-sm text-slate-600 leading-relaxed">
+                       Olá! Vi que procuras ajuda em {{ selectedExpertForAction()?.specialties?.[0] }}. Como posso ajudar? Podes enviar áudio ou vídeo.
+                    </div>
+                 </div>
+              </div>
+
+              <!-- Input Area -->
+              <div class="p-3 bg-white border-t border-slate-100">
+                 <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-100">
+                    <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+                    </button>
+                    <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
+                    </button>
+                    <input type="text" placeholder="Mensagem..." class="flex-1 bg-transparent text-sm outline-none px-2 py-1">
+                    <button class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-500 shadow-md">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    </button>
+                 </div>
+              </div>
+           </div>
+        </div>
+      }
     </div>
   `
 })
@@ -283,6 +406,11 @@ export class ExpertListComponent implements OnInit {
     const cat = this.category();
     return this.expertService.filterExpertsByCategory(cat);
   });
+
+  // Action Modals State
+  showScheduleModal = signal(false);
+  showMessageModal = signal(false);
+  selectedExpertForAction = signal<Expert | null>(null);
 
   // Payment Logic State
   showPaymentModal = signal(false);
@@ -406,5 +534,21 @@ export class ExpertListComponent implements OnInit {
   resetSearch() {
     this.category.set('Outros');
     this.router.navigate(['/results'], { queryParams: { category: 'Outros' } });
+  }
+
+  // --- NEW ACTIONS ---
+  openSchedule(expert: Expert) {
+    this.selectedExpertForAction.set(expert);
+    this.showScheduleModal.set(true);
+  }
+
+  confirmSchedule() {
+    this.showScheduleModal.set(false);
+    alert('Agendamento solicitado com sucesso! O especialista irá confirmar.');
+  }
+
+  openMessage(expert: Expert) {
+    this.selectedExpertForAction.set(expert);
+    this.showMessageModal.set(true);
   }
 }
