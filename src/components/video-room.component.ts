@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ExpertService, Expert } from '../services/expert.service';
 import { AuthService } from '../services/auth.service';
 import { StorageService } from '../services/storage.service';
+import { CurrencyService } from '../services/currency.service';
 
 interface ChatMessage {
   sender: 'me' | 'expert';
@@ -69,7 +70,7 @@ interface ChatMessage {
                </div>
                <div class="flex flex-col">
                  <span [class.text-red-400]="isExpiring()" class="text-white font-mono font-bold text-sm leading-none transition-colors">{{ formattedTime() }}</span>
-                 <span class="text-emerald-400 text-[10px] font-bold uppercase tracking-wider leading-none mt-1">{{ currentCost() | number:'1.2-2' }}€</span>
+                 <span class="text-emerald-400 text-[10px] font-bold uppercase tracking-wider leading-none mt-1">{{ currencyService.formatSimple(currentCost()) }}</span>
                </div>
              }
           </div>
@@ -335,14 +336,14 @@ interface ChatMessage {
                  
                  <div class="flex justify-between text-sm">
                    <span class="text-slate-500">Taxa / min</span>
-                   <span class="font-bold text-slate-900">{{ (expert()?.pricePerMin || 0) / 100 | number:'1.2-2' }}€</span>
+                   <span class="font-bold text-slate-900">{{ currencyService.formatSimple((expert()?.pricePerMin || 0) / 100) }}</span>
                  </div>
                  
                  <div class="border-t border-slate-200 my-2"></div>
                  
                  <div class="flex justify-between items-center">
                    <span class="text-slate-900 font-bold">Total Pago</span>
-                   <span class="text-xl font-black text-slate-900">{{ finalReceipt()?.cost | number:'1.2-2' }}€</span>
+                   <span class="text-xl font-black text-slate-900">{{ currencyService.formatSimple(finalReceipt()?.cost || 0) }}</span>
                  </div>
               </div>
 
@@ -351,7 +352,7 @@ interface ChatMessage {
                     Voltar ao Início
                  </button>
                  <div class="text-xs text-slate-400 font-medium flex justify-between px-4">
-                    <span>Saldo: {{ authService.currentUser()?.balance | number:'1.2-2' }}€</span>
+                    <span>Saldo: {{ currencyService.formatSimple(authService.currentUser()?.balance || 0) }}</span>
                     <span>Minutos Grátis: {{ authService.currentUser()?.trialMinutesLeft }}</span>
                  </div>
               </div>
@@ -418,6 +419,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   private expertService = inject(ExpertService);
   public authService = inject(AuthService);
   private storageService = inject(StorageService);
+  public currencyService = inject(CurrencyService);
   private route = inject(ActivatedRoute);
   private router = inject(Router);
 
@@ -655,7 +657,10 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   }
 
   showPlans() {
-    alert('Planos Premium: \n1. Bronze: 5€/mês (10 min)\n2. Prata: 15€/mês (40 min)\n3. Ouro: 30€/mês (Horas Ilimitadas)\n\nEm breve disponível para subscrição direta!');
+    const formatted5 = this.currencyService.formatSimple(5);
+    const formatted15 = this.currencyService.formatSimple(15);
+    const formatted30 = this.currencyService.formatSimple(30);
+    alert(`Planos Premium: \n1. Bronze: ${formatted5}/mês (10 min)\n2. Prata: ${formatted15}/mês (40 min)\n3. Ouro: ${formatted30}/mês (Horas Ilimitadas)\n\nEm breve disponível para subscrição direta!`);
   }
 
   scrollToBottom() {
@@ -672,14 +677,15 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
     this.showEndConfirmation.set(false);
   }
 
-  confirmEndCall() {
+  async confirmEndCall() {
     this.showEndConfirmation.set(false);
     if (this.timerInterval) clearInterval(this.timerInterval);
 
     // Process Payment via Auth Service (Handles Trial vs Balance)
-    const receipt = this.authService.processSessionPayment(
+    const receipt = await this.authService.processSessionPayment(
       this.elapsedSeconds(),
-      this.expert()?.pricePerMin || 0
+      this.expert()?.pricePerMin || 0,
+      this.expertId() || ''
     );
 
     this.finalReceipt.set(receipt);

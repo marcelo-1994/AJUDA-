@@ -5,6 +5,7 @@ import { FormsModule, ReactiveFormsModule, FormBuilder, Validators, FormGroup } 
 import { ExpertService, Expert } from '../services/expert.service';
 import { AuthService } from '../services/auth.service';
 import { PaymentGatewayService, PaymentStatus } from '../services/payment.service';
+import { CurrencyService } from '../services/currency.service';
 
 @Component({
   selector: 'app-expert-list',
@@ -24,7 +25,7 @@ import { PaymentGatewayService, PaymentStatus } from '../services/payment.servic
              @if (authService.currentUser()) {
                 <div class="flex flex-col items-end">
                   <div class="text-[11px] uppercase tracking-wide font-bold text-slate-400">Saldo</div>
-                  <div class="text-sm font-bold text-slate-900">{{ authService.currentUser()?.balance | number:'1.2-2' }}€</div>
+                  <div class="text-sm font-bold text-slate-900">{{ currencyService.formatSimple(authService.currentUser()?.balance || 0) }}</div>
                   @if (authService.currentUser()?.trialMinutesLeft) {
                      <div class="text-[10px] text-amber-600 font-bold bg-amber-100 px-1.5 rounded">+{{ authService.currentUser()?.trialMinutesLeft }}m Grátis</div>
                   }
@@ -84,7 +85,7 @@ import { PaymentGatewayService, PaymentStatus } from '../services/payment.servic
                    }
                 </div>
                 <div class="text-right">
-                  <div class="font-bold text-xl text-slate-900 tracking-tight">{{ expert.pricePerMin / 100 | number:'1.2-2' }}€</div>
+                  <div class="font-bold text-xl text-slate-900 tracking-tight">{{ currencyService.formatSimple(expert.pricePerMin / 100) }}</div>
                   <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">/ min</div>
                 </div>
               </div>
@@ -155,7 +156,7 @@ import { PaymentGatewayService, PaymentStatus } from '../services/payment.servic
                  <div class="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-white/10 to-transparent"></div>
                  <h3 class="text-lg font-bold relative z-10">Gateway de Pagamento</h3>
                  <p class="text-slate-400 text-sm font-medium relative z-10 mt-1">Carregar Saldo na Carteira</p>
-                 <div class="mt-3 text-4xl font-black text-white relative z-10 tracking-tight">5,00€</div>
+                 <div class="mt-3 text-4xl font-black text-white relative z-10 tracking-tight">{{ currencyService.formatSimple(5) }}</div>
               </div>
               
               <div class="p-6 -mt-4 bg-white rounded-t-[2rem] relative z-20">
@@ -195,14 +196,14 @@ import { PaymentGatewayService, PaymentStatus } from '../services/payment.servic
                         
                         <!-- Simulated QR Code -->
                         <div class="bg-white p-2 border border-blue-100 shadow-lg shadow-blue-500/10 rounded-2xl w-40 h-40 mx-auto mb-4 flex items-center justify-center relative group overflow-hidden">
-                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=00020126580014BR.GOV.BCB.PIX0111949912337515204000053039865802BR5913AJUDAI_PLATFORM6009SAO_PAULO62070503***6304" 
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=marcelosilvareisok@gmail.com" 
                                  alt="PIX QR Code" class="w-full h-full mix-blend-multiply opacity-90">
                         </div>
 
                         <!-- Copy Paste Section -->
                         <div class="bg-slate-50 rounded-xl p-3 flex items-center gap-3 mb-6 border border-slate-100">
                             <div class="flex-1 truncate font-mono text-xs text-slate-500 font-medium">
-                            00020126580014BR.GOV...
+                            marcelosilvareisok@gmail.com
                             </div>
                             <button (click)="copyPix()" class="text-blue-600 font-bold text-xs hover:bg-blue-50 px-2 py-1 rounded transition-colors uppercase tracking-wide">Copiar</button>
                         </div>
@@ -224,50 +225,35 @@ import { PaymentGatewayService, PaymentStatus } from '../services/payment.servic
                     </div>
                  }
 
-                 <!-- METHOD: CREDIT CARD -->
-                 @if (selectedMethod() === 'card') {
-                    <form [formGroup]="cardForm" (ngSubmit)="processCardPayment()" class="space-y-4 animate-in fade-in slide-in-from-right-4 duration-300">
-                       
-                       <div class="relative">
-                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
-                         </div>
-                         <input type="text" formControlName="number" placeholder="0000 0000 0000 0000" maxlength="19" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-sm text-slate-800 transition-all placeholder:text-slate-400">
-                       </div>
+                  <!-- METHOD: CREDIT CARD (STRIPE) -->
+                  @if (selectedMethod() === 'card') {
+                     <div class="text-center py-6 animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div class="bg-blue-50 p-4 rounded-2xl mb-6 border border-blue-100">
+                          <p class="text-slate-600 font-medium mb-2">Pagamento 100% Seguro</p>
+                          <div class="flex items-center justify-center gap-3 opacity-70 grayscale">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-5">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" class="h-6">
+                          </div>
+                        </div>
 
-                       <div class="relative">
-                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400">
-                           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
-                         </div>
-                         <input type="text" formControlName="holder" placeholder="Nome no Cartão" class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-medium text-sm text-slate-800 transition-all placeholder:text-slate-400">
-                       </div>
-
-                       <div class="flex gap-3">
-                          <input type="text" formControlName="expiry" placeholder="MM/AA" maxlength="5" class="w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-center text-sm text-slate-800 transition-all placeholder:text-slate-400">
-                          <input type="text" formControlName="cvc" placeholder="CVC" maxlength="4" class="w-1/2 px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono text-center text-sm text-slate-800 transition-all placeholder:text-slate-400">
-                       </div>
-
-                       <div class="flex items-center gap-2 justify-center py-1 opacity-60 grayscale">
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-5">
-                          <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-4">
-                       </div>
-
-                       <button 
-                         type="submit" 
-                         [disabled]="!cardForm.valid || paymentStatus() === 'processing'"
-                         class="w-full py-4 bg-slate-900 hover:bg-slate-800 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all shadow-xl shadow-slate-900/10 active:scale-[0.98] flex items-center justify-center gap-2">
-                           @if (paymentStatus() === 'processing') {
-                             <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                               <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                               <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                             </svg>
-                             A processar...
-                           } @else {
-                             Pagar 5,00€
-                           }
-                       </button>
-                    </form>
-                 }
+                        <button 
+                          (click)="processStripePayment()" 
+                          [disabled]="paymentStatus() === 'processing'"
+                          class="w-full py-4 bg-[#635BFF] hover:bg-[#5851E1] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-500/20 active:scale-[0.98] flex items-center justify-center gap-2">
+                            @if (paymentStatus() === 'processing') {
+                              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              A redirecionar...
+                            } @else {
+                              Pagar {{ currencyService.formatSimple(5) }} com Stripe
+                            }
+                        </button>
+                        <p class="text-xs text-slate-400 mt-3 font-medium">Serás redirecionado para a página segura da Stripe.</p>
+                     </div>
+                  }
 
                  <button (click)="closePaymentModal()" [disabled]="paymentStatus() === 'processing'" class="w-full py-3 mt-2 text-slate-400 font-bold hover:text-slate-600 text-sm disabled:opacity-50">
                     Cancelar
@@ -286,12 +272,13 @@ export class ExpertListComponent implements OnInit {
   public authService = inject(AuthService);
   private paymentService = inject(PaymentGatewayService);
   private fb: FormBuilder = inject(FormBuilder);
+  public currencyService = inject(CurrencyService);
 
   category = signal('Outros');
   quickTip = signal('');
-  
+
   experts = this.expertService.getExperts();
-  
+
   filteredExperts = computed(() => {
     const cat = this.category();
     return this.expertService.filterExpertsByCategory(cat);
@@ -331,7 +318,7 @@ export class ExpertListComponent implements OnInit {
     }
 
     const user = this.authService.currentUser();
-    
+
     // Logic: If user has trial minutes, allow entry. Else, check balance.
     if (user && user.trialMinutesLeft > 0) {
       this.router.navigate(['/room', expert.id]);
@@ -359,7 +346,7 @@ export class ExpertListComponent implements OnInit {
   }
 
   copyPix() {
-    const pixKey = "00020126580014BR.GOV.BCB.PIX0111949912337515204000053039865802BR5913AJUDAI_PLATFORM6009SAO_PAULO62070503***6304"; 
+    const pixKey = "marcelosilvareisok@gmail.com";
     navigator.clipboard.writeText(pixKey);
     // Visual feedback handled by user logic usually, alert is fine for now
     alert('Chave PIX copiada!');
@@ -379,25 +366,34 @@ export class ExpertListComponent implements OnInit {
     }
   }
 
-  async processCardPayment() {
-    if (this.cardForm.invalid) return;
-
+  async processStripePayment() {
     this.paymentStatus.set('processing');
     this.errorMessage.set('');
 
     try {
-      await this.paymentService.processCreditCard(5.00, this.cardForm.value);
-      this.finalizeSuccess();
+      const user = this.authService.currentUser();
+      if (!user) {
+        throw new Error('Usuário não autenticado.');
+      }
+
+      // Create Checkout Session and Redirect
+      const url = await this.paymentService.createStripeCheckout(
+        5.00,
+        user.id,
+        this.currencyService.code
+      );
+
+      window.location.href = url;
     } catch (error: any) {
       this.paymentStatus.set('error');
-      this.errorMessage.set(error || 'Pagamento recusado.');
+      this.errorMessage.set(error.message || 'Erro ao iniciar pagamento Stripe.');
     }
   }
 
   finalizeSuccess() {
     this.paymentStatus.set('success');
     this.authService.addBalance(5); // Add 5 EUR
-    
+
     setTimeout(() => {
       this.showPaymentModal.set(false);
       alert('Pagamento confirmado! A iniciar chamada...');

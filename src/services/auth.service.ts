@@ -18,6 +18,7 @@ export interface User {
   personalizedCallLink?: string;
   joinCommunity?: boolean;
   referredBy?: string;
+  currency?: string;
 }
 
 @Injectable({
@@ -143,7 +144,8 @@ export class AuthService {
       onboardingCompleted: profile.onboarding_completed,
       personalizedCallLink: profile.personalized_link || `${window.location.origin}/#/sos?ref=${profile.id}`,
       joinCommunity: profile.join_community ?? false,
-      referredBy: profile.referred_by
+      referredBy: profile.referred_by,
+      currency: profile.currency || (navigator.language.toLowerCase().includes('br') ? 'BRL' : 'EUR')
     };
   }
 
@@ -281,7 +283,7 @@ export class AuthService {
     }
   }
 
-  processSessionPayment(durationInSeconds: number, pricePerMinCents: number): { cost: number, minutesUsed: number, platformCommission: number } {
+  async processSessionPayment(durationInSeconds: number, pricePerMinCents: number, expertId: string): Promise<{ cost: number, minutesUsed: number, platformCommission: number }> {
     const user = this.currentUser();
     if (!user) return { cost: 0, minutesUsed: 0, platformCommission: 0 };
 
@@ -303,19 +305,38 @@ export class AuthService {
     // 2. Calcular custo total do usuário
     const costInEur = (billableMinutes * pricePerMinCents) / 100;
 
-    // 3. Calcular comissão da plataforma (5%)
-    // A plataforma fica com 5% do valor total gerado pelo trabalho concluído
+    // 3. Calcular comissão da plataforma (5%) e ganho do especialista (95%)
     const platformCommission = costInEur * 0.05;
+    const expertEarnings = costInEur - platformCommission;
 
-    // 4. Atualizar no Supabase
-    this.updateProfile({
+    // 4. Atualizar saldo do cliente e trial no Supabase
+    await this.updateProfile({
       trialMinutesLeft: Math.max(0, user.trialMinutesLeft - freeMinutesUsed),
       balance: Math.max(0, user.balance - costInEur)
     });
 
-    // Nota: Em uma implementação real, o valor da comissão seria transferido 
-    // para uma conta da plataforma e o restante para o especialista.
-    console.log(`[AJUDAÍ] Trabalho concluído. Comissão da plataforma (5%): ${platformCommission.toFixed(2)}€`);
+    // 5. Transferir valor para a carteira do especialista
+    if (expertEarnings > 0) {
+      try {
+        // Buscar o perfil do especialista via expertId
+        const { data: expertData } = await this.supabaseService.getExpertById(expertId);
+        if (expertData && expertData.profile_id) {
+          const { data: expertProfile } = await this.supabaseService.getProfileById(expertData.profile_id);
+
+          if (expertProfile) {
+            const currentExpertBalance = parseFloat(expertProfile.balance) || 0;
+            await this.supabaseService.updateProfile(expertData.profile_id, {
+              balance: currentExpertBalance + expertEarnings
+            });
+            console.log(`[AJUDAÍ] Pagamento de ${expertEarnings.toFixed(2)} enviado para a carteira do especialista ${expertId}`);
+          }
+        }
+      } catch (err) {
+        console.error('Erro ao processar pagamento do especialista:', err);
+      }
+    }
+
+    console.log(`[AJUDAÍ] Trabalho concluído. Comissão da plataforma (5%): ${platformCommission.toFixed(2)}`);
 
     return { cost: costInEur, minutesUsed: freeMinutesUsed, platformCommission };
   }

@@ -6,6 +6,8 @@ import { GeminiService } from '../services/gemini.service';
 import { AuthService } from '../services/auth.service';
 import { ExpertService } from '../services/expert.service';
 import { VoiceRecorderService } from '../services/voice-recorder.service';
+import { CurrencyService } from '../services/currency.service';
+import { PaymentGatewayService } from '../services/payment.service';
 
 @Component({
   selector: 'app-home',
@@ -37,7 +39,7 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
             <div class="flex items-center gap-3 cursor-pointer group" (click)="toggleProfile()">
                <div class="text-right hidden sm:block">
                  <div class="text-[13px] font-semibold text-slate-900 leading-none">{{ authService.currentUser()?.name }}</div>
-                 <div class="text-[11px] text-blue-600 font-bold leading-none mt-1 hover:underline" (click)="$event.stopPropagation(); openWallet()">Saldo: {{ authService.currentUser()?.balance | number:'1.2-2' }}€</div>
+                 <div class="text-[11px] text-blue-600 font-bold leading-none mt-1 hover:underline" (click)="$event.stopPropagation(); openWallet()">Saldo: {{ currencyService.formatSimple(authService.currentUser()?.balance || 0) }}</div>
                </div>
                <img [src]="authService.currentUser()?.avatar" class="w-9 h-9 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors">
             </div>
@@ -204,41 +206,90 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
                   <h2 class="text-2xl font-bold text-slate-900 mb-2">Recarregar Carteira</h2>
                   <p class="text-slate-500 text-sm mb-6">Escolha o valor que deseja depositar para continuar as suas consultas.</p>
                   
-                  <div class="grid grid-cols-3 gap-3 mb-8">
-                    @for (amount of [5, 10, 20]; track amount) {
-                      <button 
-                        (click)="selectDeposit(amount)" 
-                        [class]="depositAmount() === amount ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-600 border-slate-200'"
-                        class="py-3 rounded-2xl border font-bold transition-all active:scale-95">
-                        {{ amount }}€
-                      </button>
-                    }
-                  </div>
-
-                  @if (!isProcessingPix()) {
-                    <div class="bg-slate-50 rounded-2xl p-6 mb-6 border border-slate-100">
-                       <div class="bg-white p-3 rounded-xl shadow-sm inline-block mb-3">
-                          <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=AJUDAI_PIX_PAYMENT" class="w-24 h-24">
-                       </div>
-                       <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-4">Pagamento via Pix / Instantâneo</p>
-                       <button (click)="startPixPayment()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">
-                          Confirmar Pagamento
+                   <div class="grid grid-cols-3 gap-3 mb-6">
+                     @for (amount of [5, 10, 20]; track amount) {
+                       <button 
+                         (click)="selectDeposit(amount)" 
+                         [class]="depositAmount() === amount ? 'bg-blue-600 text-white border-blue-600' : 'bg-slate-50 text-slate-600 border-slate-200'"
+                         class="py-3 rounded-2xl border font-bold transition-all active:scale-95">
+                         {{ currencyService.formatSimple(amount) }}
                        </button>
-                    </div>
-                  } @else {
-                    <div class="py-12 flex flex-col items-center gap-4">
-                       <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                       <p class="text-slate-900 font-bold animate-pulse">A confirmar pagamento...</p>
-                    </div>
-                  }
-                </div>
+                     }
+                   </div>
+
+                   <!-- Tabs -->
+                   <div class="flex p-1 bg-slate-100 rounded-xl mb-6">
+                      <button 
+                        (click)="selectedMethod.set('pix')"
+                        [class]="selectedMethod() === 'pix' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+                        class="flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-200">
+                        PIX
+                      </button>
+                      <button 
+                        (click)="selectedMethod.set('card')"
+                        [class]="selectedMethod() === 'card' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-400 hover:text-slate-600'"
+                        class="flex-1 py-2 rounded-lg text-sm font-bold transition-all duration-200">
+                        Cartão
+                      </button>
+                   </div>
+ 
+                   <!-- PIX CONTENT -->
+                   @if (selectedMethod() === 'pix') {
+                     @if (!isProcessingPix()) {
+                       <div class="bg-slate-50 rounded-2xl p-6 mb-6 border border-slate-100">
+                          <div class="bg-white p-3 rounded-xl shadow-sm inline-block mb-3">
+                             <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=marcelosilvareisok@gmail.com" class="w-24 h-24">
+                          </div>
+                          <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-4">Pagamento via Pix / Instantâneo</p>
+                          <button (click)="startPixPayment()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/20">
+                             Confirmar Pagamento
+                          </button>
+                       </div>
+                     } @else {
+                       <div class="py-12 flex flex-col items-center gap-4">
+                          <svg class="animate-spin h-10 w-10 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                          <p class="text-slate-900 font-bold animate-pulse">A confirmar pagamento...</p>
+                       </div>
+                     }
+                   }
+
+                   <!-- STRIPE CONTENT -->
+                   @if (selectedMethod() === 'card') {
+                      <div class="text-center py-2 animate-in fade-in slide-in-from-right-4 duration-300">
+                        <div class="bg-blue-50 p-4 rounded-2xl mb-6 border border-blue-100">
+                          <p class="text-slate-600 font-medium mb-2">Pagamento 100% Seguro</p>
+                          <div class="flex items-center justify-center gap-3 opacity-70 grayscale">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" class="h-6">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/0/04/Visa.svg" class="h-5">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/b/ba/Stripe_Logo%2C_revised_2016.svg" class="h-6">
+                          </div>
+                        </div>
+
+                        <button 
+                          (click)="startStripePayment()" 
+                          [disabled]="isProcessingPix()"
+                          class="w-full py-4 bg-[#635BFF] hover:bg-[#5851E1] disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-bold rounded-2xl transition-all shadow-xl shadow-indigo-500/20 active:scale-[0.98] flex items-center justify-center gap-2">
+                            @if (isProcessingPix()) {
+                              <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              A redirecionar...
+                            } @else {
+                              Pagar {{ currencyService.formatSimple(depositAmount()) }} com Stripe
+                            }
+                        </button>
+                        <p class="text-xs text-slate-400 mt-3 font-medium">Serás redirecionado para a página segura da Stripe.</p>
+                     </div>
+                   }
+                 </div>
               } @else {
                 <div class="text-center py-6 animate-in zoom-in duration-500">
                    <div class="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner">
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-10 h-10"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg>
                    </div>
                    <h2 class="text-3xl font-black text-slate-900 mb-2">Sucesso!</h2>
-                   <p class="text-slate-500 font-medium mb-6">Saldo de <span class="text-blue-600 font-bold">{{ depositAmount() }}€</span> adicionado.</p>
+                   <p class="text-slate-500 font-medium mb-6">Saldo de <span class="text-blue-600 font-bold">{{ currencyService.formatSimple(depositAmount()) }}</span> adicionado.</p>
                    <div class="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-slate-400 text-xs font-bold uppercase tracking-widest">
                       A fechar em {{ pixCountdown() }}s
                    </div>
@@ -384,7 +435,7 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
                        <span class="bg-white/20 p-1.5 rounded-lg"><svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg></span>
                        Ganhar Comissões
                     </span>
-                    <span class="bg-white/20 px-2 py-1 rounded-md text-sm backdrop-blur-sm">{{ authService.currentUser()?.commissionEarned | number:'1.2-2' }}€</span>
+                    <span class="bg-white/20 px-2 py-1 rounded-md text-sm backdrop-blur-sm">{{ currencyService.formatSimple(authService.currentUser()?.commissionEarned || 0) }}</span>
                  </button>
 
                  @if (!authService.currentUser()?.isExpert) {
@@ -506,7 +557,7 @@ import { VoiceRecorderService } from '../services/voice-recorder.service';
                  </div>
 
                  <div>
-                   <label class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Preço por Minuto (€)</label>
+                   <label class="block text-sm font-semibold text-slate-700 mb-2 ml-1">Preço por Minuto ({{ currencyService.currencyConfig().symbol }})</label>
                    <input type="number" formControlName="price" placeholder="Ex: 1.50" class="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 outline-none font-medium text-slate-900 transition-all">
                  </div>
 
@@ -596,6 +647,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   // Deposit state
   depositAmount = signal(10);
+  selectedMethod = signal<'pix' | 'card'>('pix');
   isProcessingPix = signal(false);
   isPixSuccess = signal(false);
   pixCountdown = signal(3);
@@ -618,6 +670,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   public authService = inject(AuthService);
   public expertService = inject(ExpertService);
   public recorderService = inject(VoiceRecorderService);
+  public currencyService = inject(CurrencyService);
+  private paymentService = inject(PaymentGatewayService);
   private fb: FormBuilder = inject(FormBuilder);
 
   isRecording = this.recorderService.isRecording;
@@ -727,6 +781,8 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.isAnalyzing.set(false);
     }
   }
+
+
 
   // --- Auth & Actions ---
 
@@ -900,7 +956,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   }
 
   openCommunityGroup() {
-    window.open('https://chat.whatsapp.com/demo-group', '_blank');
+    window.open('https://chat.whatsapp.com/CilC3a21huq0vtw4DWMkw4?mode=gi_t', '_blank');
   }
 
   // --- Wallet / Deposit Logic ---
@@ -916,26 +972,32 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.depositAmount.set(amount);
   }
 
-  async startPixPayment() {
-    this.isProcessingPix.set(true);
-    // Simular processamento do Pix
-    setTimeout(() => {
+  async startStripePayment() {
+    const user = this.authService.currentUser();
+    if (!user) {
+      this.initiateGoogleLogin();
+      return;
+    }
+
+    this.isProcessingPix.set(true); // Reusing processing state for loading
+    try {
+      const checkoutUrl = await this.paymentService.createStripeCheckout(
+        this.depositAmount(),
+        user.id,
+        this.currencyService.code || 'eur'
+      );
+
+      // Redirect to Stripe
+      window.location.href = checkoutUrl;
+    } catch (err: any) {
+      alert(err.message || 'Erro ao iniciar pagamento.');
       this.isProcessingPix.set(false);
-      this.isPixSuccess.set(true);
-      this.finishDeposit();
-    }, 2500);
+    }
   }
 
   async finishDeposit() {
-    // Contagem regressiva de sucesso
-    this.pixCountdown.set(3);
-    const interval = setInterval(() => {
-      this.pixCountdown.update(v => v - 1);
-      if (this.pixCountdown() <= 0) {
-        clearInterval(interval);
-        this.authService.addBalance(this.depositAmount());
-        this.showWalletModal.set(false);
-      }
-    }, 1000);
+    // This is still kept if we want to handle success callback in-app, 
+    // but usually Stripe redirects back to successUrl.
+    // For now, Stripe handled the balance via webhook.
   }
 }

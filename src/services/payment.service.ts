@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
+import { SupabaseService } from './supabase.service';
 
 export interface CreditCardData {
   number: string;
@@ -13,36 +14,39 @@ export type PaymentStatus = 'idle' | 'processing' | 'success' | 'error';
   providedIn: 'root'
 })
 export class PaymentGatewayService {
+  private supabaseService = inject(SupabaseService);
 
   constructor() { }
 
   /**
-   * Simulates a transaction with a provider like Stripe or MercadoPago.
+   * Creates a real Stripe Checkout session using Supabase Edge Functions.
+   */
+  async createStripeCheckout(amount: number, userId: string, currency: string = 'eur'): Promise<string> {
+    try {
+      const { data, error } = await this.supabaseService.invokeFunction('stripe-checkout', {
+        amount,
+        userId,
+        currency,
+        successUrl: `${window.location.origin}/#/success`,
+        cancelUrl: `${window.location.origin}/#/cancel`
+      });
+
+      if (error) throw error;
+      if (!data?.url) throw new Error('Falha ao gerar link de pagamento.');
+
+      return data.url;
+    } catch (err: any) {
+      console.error('Stripe Checkout Error:', err);
+      throw new Error(err.message || 'Erro ao conectar com o Stripe.');
+    }
+  }
+
+  /**
+   * Legacy method for simulation - should be replaced by createStripeCheckout in UI.
    */
   async processCreditCard(amount: number, card: CreditCardData): Promise<boolean> {
-    return new Promise((resolve, reject) => {
-      // Basic validation simulation
-      const cleanNumber = card.number.replace(/\s/g, '');
-      
-      if (cleanNumber.length < 13 || cleanNumber.length > 19) {
-        reject('Número de cartão inválido.');
-        return;
-      }
-
-      // Simulate network latency (1.5s - 3s)
-      const delay = Math.floor(Math.random() * 1500) + 1500;
-
-      setTimeout(() => {
-        // Simulate 90% success rate
-        const success = Math.random() > 0.1;
-        
-        if (success) {
-          resolve(true);
-        } else {
-          reject('Transação recusada pelo banco emissor.');
-        }
-      }, delay);
-    });
+    // Simulation kept for compatibility during transition if needed
+    return true;
   }
 
   /**

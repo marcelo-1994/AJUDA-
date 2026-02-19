@@ -100,6 +100,15 @@ export class SupabaseService {
             .single();
     }
 
+    async getProfileById(id: string) {
+        if (!this.supabase) return { data: null, error: 'Not initialized' };
+        return this.supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', id)
+            .single();
+    }
+
     async createProfile(profile: any) {
         if (!this.supabase) return { data: null, error: 'Not initialized' };
         return this.supabase
@@ -240,5 +249,12 @@ export class SupabaseService {
             .select('*')
             .eq('user_id', userId)
             .order('created_at', { ascending: false });
+    }
+
+    async invokeFunction(name: string, body: any) {
+        if (!this.supabase) throw new Error('Supabase not initialized');
+        return this.supabase.functions.invoke(name, {
+            body: body
+        });
     }
 }
