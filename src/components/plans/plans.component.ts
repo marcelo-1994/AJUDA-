@@ -1,4 +1,5 @@
 import { Component, inject } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { SupabaseService } from '../../services/supabase.service';
@@ -13,6 +14,24 @@ import { SupabaseService } from '../../services/supabase.service';
 export class PlansComponent {
     authService = inject(AuthService);
     supabaseService = inject(SupabaseService);
+    route = inject(ActivatedRoute);
+
+    constructor() {
+        this.route.queryParams.subscribe(params => {
+            if (params['session_id']) {
+                // Sucesso
+                alert('Assinatura realizada com sucesso! Aproveite os benefícios.');
+                // Limpar URL
+                window.history.replaceState({}, document.title, window.location.pathname);
+                // Forçar atualização do perfil
+                this.authService.updateProfile({});
+            } else if (params['cancel']) {
+                // Cancelamento
+                alert('Assinatura cancelada. Você não foi cobrado.');
+                window.history.replaceState({}, document.title, window.location.pathname);
+            }
+        });
+    }
 
     async subscribe(plan: 'pro' | 'premium') {
         const user = this.authService.currentUser();
@@ -24,8 +43,8 @@ export class PlansComponent {
         try {
             const { data, error } = await this.supabaseService.createCheckoutSession(
                 0, // valor ignorado para subscription
-                window.location.href, // successUrl (retorna pra mesma pagina/modal)
-                window.location.href, // cancelUrl
+                window.location.href, // successUrl (retorna pra mesma pagina com session_id)
+                window.location.href + '?cancel=true', // cancelUrl
                 'subscription', // type
                 plan // plan
             );

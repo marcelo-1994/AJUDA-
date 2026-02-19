@@ -29,10 +29,12 @@
                 <li>✅ <strong>50% OFF</strong> nas taxas da plataforma</li>
                 <li>✅ Suporte prioritário</li>
             </ul>
+
+            <!-- Botão Pro -->
             <button class="btn-plan pro-btn" *ngIf="!authService.isPro()" (click)="subscribe('pro')">
-                Assinar Pro
+                {{ authService.isPremium() ? 'Downgrade para Pro' : 'Assinar Pro' }}
             </button>
-            <div class="active-badge" *ngIf="authService.isPro()">SEU PLANO</div>
+            <button class="btn-plan" *ngIf="authService.isPro()" [disabled]="true">Plano Atual</button>
         </div>
 
         <!-- PREMIUM -->
@@ -47,10 +49,12 @@
                 <li>✅ <strong>TAXA ZERO</strong> da plataforma</li>
                 <li>✅ Acesso Ilimitado sem filas</li>
             </ul>
+
+            <!-- Botão Premium -->
             <button class="btn-plan premium-btn" *ngIf="!authService.isPremium()" (click)="subscribe('premium')">
-                Assinar Premium
+                {{ authService.isPro() ? 'Upgrade para Premium' : 'Assinar Premium' }}
             </button>
-            <div class="active-badge" *ngIf="authService.isPremium()">SEU PLANO</div>
+            <button class="btn-plan" *ngIf="authService.isPremium()" [disabled]="true">Plano Atual</button>
         </div>
     </div>
 </div>
