@@ -332,14 +332,15 @@ import { CurrencyService } from '../services/currency.service';
 
       <!-- MESSAGE MODAL -->
       @if (showMessageModal()) {
-        <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center sm:p-6">
+        <div class="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-6">
            <div class="absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity" (click)="showMessageModal.set(false)"></div>
-           <div class="bg-white w-full sm:max-w-md h-[80vh] sm:h-auto sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl flex flex-col animate-slide-up sm:animate-zoom-in overflow-hidden">
+           
+           <div class="bg-white w-full sm:max-w-md h-[85vh] sm:h-[600px] sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl flex flex-col animate-slide-up sm:animate-zoom-in overflow-hidden relative z-10">
               
               <!-- Header -->
-              <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white z-10">
+              <div class="p-4 border-b border-slate-100 flex items-center justify-between bg-white z-20 shadow-sm">
                  <div class="flex items-center gap-3">
-                    <img [src]="selectedExpertForAction()?.avatarUrl" class="w-10 h-10 rounded-full bg-slate-100 object-cover">
+                    <img [src]="selectedExpertForAction()?.avatarUrl" class="w-10 h-10 rounded-full bg-slate-100 object-cover border border-slate-200">
                     <div>
                       <h3 class="font-bold text-slate-900 leading-tight">{{ selectedExpertForAction()?.name }}</h3>
                       <p class="text-xs text-green-500 font-bold flex items-center gap-1">
@@ -347,38 +348,55 @@ import { CurrencyService } from '../services/currency.service';
                       </p>
                     </div>
                  </div>
-                 <button (click)="showMessageModal.set(false)" class="p-2 bg-slate-50 rounded-full text-slate-400 hover:text-slate-600">
+                 <button (click)="showMessageModal.set(false)" class="p-2 bg-slate-50 rounded-full text-slate-400 hover:text-slate-600 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                  </button>
               </div>
 
-              <!-- Chat Area (Mock) -->
-              <div class="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4">
+              <!-- Chat Area -->
+              <div class="flex-1 bg-slate-50 p-4 overflow-y-auto space-y-4 relative" (click)="messageInputRef.blur()">
                  <div class="flex justify-center">
                     <span class="text-[10px] uppercase font-bold text-slate-400 bg-slate-100 px-2 py-1 rounded-full">Hoje</span>
                  </div>
                  
-                 <!-- Expert Msg -->
-                 <div class="flex gap-3 max-w-[85%]">
-                    <img [src]="selectedExpertForAction()?.avatarUrl" class="w-8 h-8 rounded-full bg-slate-200 mt-auto">
-                    <div class="bg-white p-3 rounded-2xl rounded-bl-none shadow-sm text-sm text-slate-600 leading-relaxed">
+                 <div class="flex gap-3 max-w-[90%]">
+                    <img [src]="selectedExpertForAction()?.avatarUrl" class="w-8 h-8 rounded-full bg-slate-200 mt-auto border border-white shadow-sm">
+                    <div class="bg-white p-3.5 rounded-2xl rounded-bl-none shadow-sm text-sm text-slate-600 leading-relaxed border border-slate-100">
                        Olá! Vi que procuras ajuda em {{ selectedExpertForAction()?.specialties?.[0] }}. Como posso ajudar? Podes enviar áudio ou vídeo.
                     </div>
                  </div>
+                 
+                 <!-- User Message Mock -->
+                 @if (lastSentMessage()) {
+                    <div class="flex gap-3 max-w-[90%] ml-auto flex-row-reverse">
+                        <img [src]="authService.currentUser()?.avatar" class="w-8 h-8 rounded-full bg-slate-200 mt-auto border border-white shadow-sm">
+                        <div class="bg-blue-600 p-3.5 rounded-2xl rounded-br-none shadow-md text-sm text-white leading-relaxed">
+                           {{ lastSentMessage() }}
+                        </div>
+                    </div>
+                 }
               </div>
 
               <!-- Input Area -->
-              <div class="p-3 bg-white border-t border-slate-100">
-                 <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-full border border-slate-100">
-                    <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors">
-                       <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
+              <div class="p-3 bg-white border-t border-slate-100 pb-safe z-20">
+                 <div class="flex items-center gap-2 bg-slate-50 p-1.5 rounded-[1.5rem] border border-slate-200 focus-within:ring-2 focus-within:ring-blue-100 focus-within:border-blue-300 transition-all">
+                    <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors rounded-full hover:bg-blue-50">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" /></svg>
                     </button>
-                    <button class="p-2 text-slate-400 hover:text-blue-500 transition-colors">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z" /></svg>
-                    </button>
-                    <input type="text" placeholder="Mensagem..." class="flex-1 bg-transparent text-sm outline-none px-2 py-1">
-                    <button class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-500 shadow-md">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
+                    <input 
+                        #messageInputRef
+                        type="text" 
+                        [ngModel]="messageInput()"
+                        (ngModelChange)="messageInput.set($event)"
+                        (keyup.enter)="sendMessage()"
+                        placeholder="Mensagem..." 
+                        class="flex-1 bg-transparent text-sm outline-none px-2 py-1 text-slate-900 placeholder:text-slate-400 h-10 w-full"
+                    >
+                    <button 
+                        (click)="sendMessage()"
+                        [disabled]="!messageInput()"
+                        class="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-500 shadow-md disabled:bg-slate-300 disabled:shadow-none transition-all active:scale-95">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                     </button>
                  </div>
               </div>
@@ -386,7 +404,27 @@ import { CurrencyService } from '../services/currency.service';
         </div>
       }
     </div>
-  `
+  `,
+  styles: [`
+    @keyframes slide-up {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .animate-slide-up {
+      animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes zoom-in {
+      from { transform: scale(0.95); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .animate-zoom-in {
+      animation: zoom-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    /* iOS Safe Area for bottom input */
+    .pb-safe {
+      padding-bottom: env(safe-area-inset-bottom, 20px);
+    }
+  `]
 })
 export class ExpertListComponent implements OnInit {
   private route = inject(ActivatedRoute);
@@ -411,6 +449,17 @@ export class ExpertListComponent implements OnInit {
   showScheduleModal = signal(false);
   showMessageModal = signal(false);
   selectedExpertForAction = signal<Expert | null>(null);
+
+  // Message Logic
+  messageInput = signal('');
+  lastSentMessage = signal('');
+
+  sendMessage() {
+    if (!this.messageInput().trim()) return;
+    this.lastSentMessage.set(this.messageInput());
+    this.messageInput.set('');
+    // TODO: Send to backend
+  }
 
   // Payment Logic State
   showPaymentModal = signal(false);

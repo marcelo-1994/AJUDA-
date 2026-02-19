@@ -1,8 +1,9 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
+// @ts-ignore
+import { serve } from "std/http/server.ts";
+import Stripe from "stripe";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
-    apiVersion: "2022-11-15",
+    apiVersion: "2022-11-15" as any,
     httpClient: Stripe.createFetchHttpClient(),
 });
 
