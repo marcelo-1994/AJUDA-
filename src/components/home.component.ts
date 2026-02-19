@@ -526,6 +526,18 @@ import { PaymentGatewayService } from '../services/payment.service';
                     <span class="bg-white/20 px-2 py-1 rounded-md text-sm backdrop-blur-sm">{{ currencyService.formatSimple(authService.currentUser()?.commissionEarned || 0) }}</span>
                  </button>
 
+                 <button (click)="openPlans()" class="w-full py-4 px-6 bg-slate-50 hover:bg-slate-100 rounded-2xl flex items-center justify-between transition-all group mt-3">
+                    <span class="flex items-center gap-3">
+                       <span class="bg-indigo-100 text-indigo-600 p-1.5 rounded-lg">
+                          <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                          </svg>
+                       </span>
+                       Planos & Assinaturas
+                    </span>
+                    <span class="bg-indigo-100 text-indigo-700 px-2 py-1 rounded-md text-xs font-bold uppercase border border-indigo-200">{{ authService.currentUser()?.plan || 'Free' }}</span>
+                 </button>
+
                  @if (!authService.currentUser()?.isExpert) {
                    <button (click)="openProviderSignup()" class="w-full py-4 px-5 bg-slate-100 text-slate-700 rounded-2xl font-semibold text-left hover:bg-slate-200 transition-colors flex items-center gap-3">
                       <span class="bg-white p-1.5 rounded-lg shadow-sm text-slate-400">💼</span>
@@ -1112,5 +1124,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     // This is still kept if we want to handle success callback in-app, 
     // but usually Stripe redirects back to successUrl.
     // For now, Stripe handled the balance via webhook.
+  }
+
+  openPlans() {
+    this.showProfileModal.set(false);
+    this.router.navigate(['/plans']);
   }
 }

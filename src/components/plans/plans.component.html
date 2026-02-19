@@ -1,0 +1,56 @@
+<div class="plans-container">
+    <h2>Escolha seu Plano</h2>
+
+    <div class="plans-grid">
+        <!-- FREE -->
+        <div class="plan-card free" [class.active]="!authService.isSubscriber()">
+            <div class="plan-header">
+                <h3>Free</h3>
+                <p class="price">R$ 0<span>/mês</span></p>
+            </div>
+            <ul class="features">
+                <li>✅ Acesso à plataforma</li>
+                <li>✅ 1 min de Trial (Degustação)</li>
+                <li>❌ Taxas reduzidas</li>
+                <li>❌ Badge exclusiva</li>
+            </ul>
+            <button class="btn-plan" [disabled]="true">Plano Atual</button>
+        </div>
+
+        <!-- PRO -->
+        <div class="plan-card pro" [class.active]="authService.isPro()">
+            <div class="plan-header">
+                <h3>Pro</h3>
+                <p class="price">R$ 9,90<span>/mês</span></p>
+            </div>
+            <ul class="features">
+                <li>✅ Tudo do Free</li>
+                <li>✅ <strong>Badge PRO</strong> no perfil</li>
+                <li>✅ <strong>50% OFF</strong> nas taxas da plataforma</li>
+                <li>✅ Suporte prioritário</li>
+            </ul>
+            <button class="btn-plan pro-btn" *ngIf="!authService.isPro()" (click)="subscribe('pro')">
+                Assinar Pro
+            </button>
+            <div class="active-badge" *ngIf="authService.isPro()">SEU PLANO</div>
+        </div>
+
+        <!-- PREMIUM -->
+        <div class="plan-card premium" [class.active]="authService.isPremium()">
+            <div class="plan-header">
+                <h3>Premium</h3>
+                <p class="price">R$ 19,90<span>/mês</span></p>
+            </div>
+            <ul class="features">
+                <li>✅ Tudo do Pro</li>
+                <li>✅ <strong>Badge PREMIUM</strong> (Dourado)</li>
+                <li>✅ <strong>TAXA ZERO</strong> da plataforma</li>
+                <li>✅ Acesso Ilimitado sem filas</li>
+            </ul>
+            <button class="btn-plan premium-btn" *ngIf="!authService.isPremium()" (click)="subscribe('premium')">
+                Assinar Premium
+            </button>
+            <div class="active-badge" *ngIf="authService.isPremium()">SEU PLANO</div>
+        </div>
+    </div>
+</div>

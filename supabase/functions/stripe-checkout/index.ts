@@ -1,5 +1,5 @@
-import { serve } from "std/http/server.ts";
-import Stripe from "stripe";
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import Stripe from "https://esm.sh/stripe@12.0.0?target=deno";
 
 const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") ?? "", {
     apiVersion: "2022-11-15",
@@ -17,39 +17,90 @@ serve(async (req: Request) => {
     }
 
     try {
-        const { amount, userId, currency = "brl", successUrl, cancelUrl } = await req.json();
+        const { amount, userId, currency = "brl", successUrl, cancelUrl, type, plan } = await req.json();
 
-        if (!amount || !userId) {
-            throw new Error("Missing amount or userId");
+        if (!userId) {
+            throw new Error("Missing userId");
         }
 
-        // Amount in cents for Stripe. 
-        // Ensure amount is an integer.
-        // If amount is 5.00, it becomes 500.
-        const amountInCents = Math.round(amount * 100);
+        let sessionConfig: Stripe.Checkout.SessionCreateParams;
 
-        const session = await stripe.checkout.sessions.create({
-            payment_method_types: ["card"],
-            line_items: [
-                {
-                    price_data: {
-                        currency: currency,
-                        product_data: {
-                            name: "Saldo AJUDAÍ",
-                            description: `Recarga de crédito para micro-consultoria`,
+        if (type === 'subscription') {
+            // Configuração para Assinatura (Pro ou Premium)
+            let priceAmount = 0;
+            let planName = '';
+
+            if (plan === 'pro') {
+                priceAmount = 990; // R$ 9,90
+                planName = 'Plano Pro';
+            } else if (plan === 'premium') {
+                priceAmount = 1990; // R$ 19,90
+                planName = 'Plano Premium';
+            } else {
+                throw new Error("Invalid subscription plan");
+            }
+
+            sessionConfig = {
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: currency,
+                            product_data: {
+                                name: `AJUDAÍ - ${planName}`,
+                                description: `Assinatura mensal ${planName}`,
+                            },
+                            unit_amount: priceAmount,
+                            recurring: {
+                                interval: 'month',
+                            },
                         },
-                        unit_amount: amountInCents,
+                        quantity: 1,
                     },
-                    quantity: 1,
+                ],
+                mode: "subscription",
+                success_url: successUrl || `${req.headers.get("origin") || ''}/#/success?session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: cancelUrl || `${req.headers.get("origin") || ''}/#/cancel`,
+                metadata: {
+                    userId: userId,
+                    planType: plan, // 'pro' ou 'premium'
+                    type: 'subscription'
                 },
-            ],
-            mode: "payment",
-            success_url: successUrl || `${req.headers.get("origin") || ''}/#/success`,
-            cancel_url: cancelUrl || `${req.headers.get("origin") || ''}/#/cancel`,
-            metadata: {
-                userId: userId,
-            },
-        });
+            };
+        } else {
+            // Configuração para Recarga Avulsa (Créditos)
+            if (!amount) {
+                throw new Error("Missing amount");
+            }
+
+            const amountInCents = Math.round(amount * 100);
+
+            sessionConfig = {
+                payment_method_types: ["card"],
+                line_items: [
+                    {
+                        price_data: {
+                            currency: currency,
+                            product_data: {
+                                name: "Saldo AJUDAÍ",
+                                description: `Recarga de crédito para micro-consultoria`,
+                            },
+                            unit_amount: amountInCents,
+                        },
+                        quantity: 1,
+                    },
+                ],
+                mode: "payment",
+                success_url: successUrl || `${req.headers.get("origin") || ''}/#/success`,
+                cancel_url: cancelUrl || `${req.headers.get("origin") || ''}/#/cancel`,
+                metadata: {
+                    userId: userId,
+                    type: 'credits'
+                },
+            };
+        }
+
+        const session = await stripe.checkout.sessions.create(sessionConfig);
 
         return new Response(JSON.stringify({ url: session.url }), {
             headers: { ...corsHeaders, "Content-Type": "application/json" },

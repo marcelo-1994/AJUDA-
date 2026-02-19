@@ -257,4 +257,22 @@ export class SupabaseService {
             body: body
         });
     }
+
+    async createCheckoutSession(amount: number, successUrl: string, cancelUrl: string, mode: 'payment' | 'subscription' = 'payment', plan?: string) {
+        if (!this.supabase) throw new Error('Supabase not initialized');
+
+        const { data: { user } } = await this.supabase.auth.getUser();
+        if (!user) throw new Error('User not logged in');
+
+        return this.supabase.functions.invoke('stripe-checkout', {
+            body: {
+                amount,
+                userId: user.id, // Mandatory for the edge function
+                successUrl,
+                cancelUrl,
+                type: mode,     // Edge function expects 'type', not 'mode'
+                plan: plan      // Edge function expects 'plan', not 'priceId'
+            }
+        });
+    }
 }

@@ -19,6 +19,8 @@ export interface User {
   joinCommunity?: boolean;
   referredBy?: string;
   currency?: string;
+  plan?: 'free' | 'pro' | 'premium';
+  subscriptionStatus?: 'active' | 'inactive' | 'past_due' | 'canceled';
 }
 
 @Injectable({
@@ -30,6 +32,19 @@ export class AuthService {
   // State
   currentUser = signal<User | null>(null);
   isLoggedIn = computed(() => !!this.currentUser());
+
+  // Helpers de Plano
+  isPro = computed(() => {
+    const user = this.currentUser();
+    return user?.plan === 'pro' && user?.subscriptionStatus === 'active';
+  });
+
+  isPremium = computed(() => {
+    const user = this.currentUser();
+    return user?.plan === 'premium' && user?.subscriptionStatus === 'active';
+  });
+
+  isSubscriber = computed(() => this.isPro() || this.isPremium());
 
   constructor() {
     this.initAuth();
@@ -145,7 +160,9 @@ export class AuthService {
       personalizedCallLink: profile.personalized_link || `${window.location.origin}/#/sos?ref=${profile.id}`,
       joinCommunity: profile.join_community ?? false,
       referredBy: profile.referred_by,
-      currency: profile.currency || (navigator.language.toLowerCase().includes('br') ? 'BRL' : 'EUR')
+      currency: profile.currency || (navigator.language.toLowerCase().includes('br') ? 'BRL' : 'EUR'),
+      plan: profile.plan_type || 'free',
+      subscriptionStatus: profile.subscription_status || 'inactive'
     };
   }
 
@@ -302,11 +319,35 @@ export class AuthService {
       }
     }
 
+    // Se for Premium (Plano de 19,90), o usuário NÃO PAGA pelos minutos?
+    // "Premium. 19,90. (acesso ao tempo liberado ilimitado)"
+    // Interpretação: O usuário paga R$19,90 e tem uso ILIMITADO da plataforma sem pagar por minuto?
+    // ISSO SERIA INSUSTENTÁVEL se o especialista recebe por minuto.
+    // "acesso ao tempo liberado ilimitado" pode significar que não tem limite de TEMPO na chamada (não cai), mas paga por minuto.
+    // OU pode ser que o usuário Premium paga a mensalidade E o especialista, mas com TAXA ZERO da plataforma.
+    // O user disse: "Premium. 19,90. (acesso ao tempo liberado ilimitado)"
+    // Vamos assumir: Taxa da plataforma ZERO. O usuário ainda paga o especialista.
+    // Se fosse "Tudo grátis", o especialista trabalharia de graça? Não faz sentido.
+    // Vou assumir que:
+    // PRO: Paga taxa reduzida.
+    // PREMIUM: Paga taxa zero da plataforma (só o valor do especialista).
+
     // 2. Calcular custo total do usuário
     const costInEur = (billableMinutes * pricePerMinCents) / 100;
 
-    // 3. Calcular comissão da plataforma (5%) e ganho do especialista (95%)
-    const platformCommission = costInEur * 0.05;
+    // 3. Calcular comissão da plataforma
+    // Padrão: 5% (definido anteriormente)
+    // Se for Premium: 0%
+    // Se for Pro: 2.5% (metade)
+
+    let commissionRate = 0.05;
+    if (this.isPremium()) {
+      commissionRate = 0;
+    } else if (this.isPro()) {
+      commissionRate = 0.025;
+    }
+
+    const platformCommission = costInEur * commissionRate;
     const expertEarnings = costInEur - platformCommission;
 
     // 4. Atualizar saldo do cliente e trial no Supabase
@@ -336,7 +377,7 @@ export class AuthService {
       }
     }
 
-    console.log(`[AJUDAÍ] Trabalho concluído. Comissão da plataforma (5%): ${platformCommission.toFixed(2)}`);
+    console.log(`[AJUDAÍ] Trabalho concluído. Comissão da plataforma: ${platformCommission.toFixed(2)}`);
 
     return { cost: costInEur, minutesUsed: freeMinutesUsed, platformCommission };
   }
