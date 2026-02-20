@@ -16,6 +16,8 @@ export class PlansComponent {
     supabaseService = inject(SupabaseService);
     route = inject(ActivatedRoute);
 
+    isLoading: boolean = false;
+
     constructor() {
         this.route.queryParams.subscribe(params => {
             if (params['session_id']) {
@@ -34,11 +36,15 @@ export class PlansComponent {
     }
 
     async subscribe(plan: 'pro' | 'premium') {
+        if (this.isLoading) return;
+
         const user = this.authService.currentUser();
         if (!user) {
             alert('Você precisa estar logado para assinar.');
             return;
         }
+
+        this.isLoading = true;
 
         try {
             const { data, error } = await this.supabaseService.createCheckoutSession(
@@ -56,6 +62,8 @@ export class PlansComponent {
         } catch (err) {
             console.error('Erro ao iniciar assinatura:', err);
             alert('Erro ao iniciar assinatura. Tente novamente.');
+        } finally {
+            this.isLoading = false;
         }
     }
 }

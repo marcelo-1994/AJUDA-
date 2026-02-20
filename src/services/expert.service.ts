@@ -51,10 +51,7 @@ export class ExpertService {
   }
 
   private setFallbackCategories() {
-    this.categories.set([
-      'Bricolage', 'Tecnologia', 'Beleza', 'Mecânica',
-      'Culinária', 'Jurídico', 'Educação', 'Design', 'Outros'
-    ]);
+    this.categories.set([]);
   }
 
   /**
@@ -67,23 +64,13 @@ export class ExpertService {
       if (data && !error) {
         this.experts.set(data.map((e: any) => this.mapDbExpert(e)));
       } else {
-        this.setFallbackExperts();
+        this.experts.set([]);
       }
     } catch (error) {
       console.warn('Failed to load experts from Supabase:', error);
-      this.setFallbackExperts();
+      this.experts.set([]);
     }
     this.loading.set(false);
-  }
-
-  private setFallbackExperts() {
-    this.experts.set([
-      { id: '1', name: 'João Silva', category: 'Bricolage', rating: 4.8, reviews: 124, pricePerMin: 150, isOnline: true, avatarUrl: 'https://picsum.photos/seed/joao/200/200', specialties: ['Canalização', 'Eletricidade básica', 'Montagem de móveis'] },
-      { id: '2', name: 'Marta Dias', category: 'Tecnologia', rating: 4.9, reviews: 89, pricePerMin: 200, isOnline: true, avatarUrl: 'https://picsum.photos/seed/marta/200/200', specialties: ['Windows', 'Mac', 'Configuração de WiFi', 'Impressoras'] },
-      { id: '3', name: 'Carlos Mendes', category: 'Mecânica', rating: 4.7, reviews: 56, pricePerMin: 180, isOnline: false, avatarUrl: 'https://picsum.photos/seed/carlos/200/200', specialties: ['Diagnóstico Auto', 'Motos', 'Pneus'] },
-      { id: '4', name: 'Sofia Costa', category: 'Beleza', rating: 5.0, reviews: 210, pricePerMin: 250, isOnline: true, avatarUrl: 'https://picsum.photos/seed/sofia/200/200', specialties: ['Maquilhagem', 'Skincare', 'Cabelos'] },
-      { id: '5', name: 'Chef Rui', category: 'Culinária', rating: 4.6, reviews: 45, pricePerMin: 120, isOnline: true, avatarUrl: 'https://picsum.photos/seed/rui/200/200', specialties: ['Doces', 'Assados', 'Cozinha rápida'] }
-    ]);
   }
 
   /**

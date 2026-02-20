@@ -23,13 +23,15 @@ export class PaymentGatewayService {
    */
   async createStripeCheckout(amount: number, userId: string, currency: string = 'eur'): Promise<string> {
     try {
-      const { data, error } = await this.supabaseService.invokeFunction('stripe-checkout', {
+      // Usando o método centralizado do SupabaseService
+      const { data, error } = await this.supabaseService.createCheckoutSession(
         amount,
-        userId,
-        currency,
-        successUrl: `${window.location.origin}/#/success`,
-        cancelUrl: `${window.location.origin}/#/cancel`
-      });
+        `${window.location.origin}/#/success`,
+        `${window.location.origin}/#/cancel`,
+        'payment',
+        undefined,
+        currency
+      );
 
       if (error) throw error;
       if (!data?.url) throw new Error('Falha ao gerar link de pagamento.');

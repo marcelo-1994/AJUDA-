@@ -14,6 +14,9 @@ export interface User {
   trialMinutesLeft: number;
   phoneNumber?: string;
   address?: string;
+  bio?: string;
+  theme?: 'light' | 'dark';
+  primaryColor?: string;
   onboardingCompleted: boolean;
   personalizedCallLink?: string;
   joinCommunity?: boolean;
@@ -156,6 +159,9 @@ export class AuthService {
       trialMinutesLeft: profile.trial_minutes_left ?? 1,
       phoneNumber: profile.phone_number,
       address: profile.address,
+      bio: profile.bio || '',
+      theme: profile.theme || 'light',
+      primaryColor: profile.primary_color || '#2563eb', // Default blue-600
       onboardingCompleted: profile.onboarding_completed,
       personalizedCallLink: profile.personalized_link || `${window.location.origin}/#/sos?ref=${profile.id}`,
       joinCommunity: profile.join_community ?? false,
@@ -240,6 +246,9 @@ export class AuthService {
     if (updates.balance !== undefined) dbUpdates.balance = updates.balance;
     if (updates.phoneNumber !== undefined) dbUpdates.phone_number = updates.phoneNumber;
     if (updates.address !== undefined) dbUpdates.address = updates.address;
+    if (updates.bio !== undefined) dbUpdates.bio = updates.bio;
+    if (updates.theme !== undefined) dbUpdates.theme = updates.theme;
+    if (updates.primaryColor !== undefined) dbUpdates.primary_color = updates.primaryColor;
     if (updates.onboardingCompleted !== undefined) dbUpdates.onboarding_completed = updates.onboardingCompleted;
     if (updates.trialMinutesLeft !== undefined) dbUpdates.trial_minutes_left = updates.trialMinutesLeft;
     if (updates.commissionEarned !== undefined) dbUpdates.commission_earned = updates.commissionEarned;
@@ -258,6 +267,23 @@ export class AuthService {
       });
       this.saveUser();
     }
+  }
+
+  async uploadAvatar(file: File): Promise<string | null> {
+    const user = this.currentUser();
+    if (!user) return null;
+
+    try {
+      const path = `avatars/${user.id}/${Date.now()}_${file.name}`;
+      const url = await this.supabaseService.uploadFile(path, file);
+      if (url) {
+        await this.updateProfile({ avatar: url });
+        return url;
+      }
+    } catch (error) {
+      console.error('Error uploading avatar:', error);
+    }
+    return null;
   }
 
   async becomeExpert(category: string, price: number, pixKey: string, phone: string, address: string) {

@@ -41,7 +41,7 @@ import { PaymentGatewayService } from '../services/payment.service';
                  <div class="text-[13px] font-semibold text-slate-900 leading-none">{{ authService.currentUser()?.name }}</div>
                  <div class="text-[11px] text-blue-600 font-bold leading-none mt-1 hover:underline" (click)="$event.stopPropagation(); openWallet()">Saldo: {{ currencyService.formatSimple(authService.currentUser()?.balance || 0) }}</div>
                </div>
-               <img [src]="authService.currentUser()?.avatar" class="w-9 h-9 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors">
+               <img [src]="authService.currentUser()?.avatar" class="w-9 h-9 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors object-cover">
             </div>
           }
         </div>
@@ -179,7 +179,7 @@ import { PaymentGatewayService } from '../services/payment.service';
               <span class="text-[11px] font-bold text-slate-600">Tu</span>
            </div>
 
-           @for (story of stories; track story.name) {
+           @for (story of stories(); track story.name) {
              <div class="flex flex-col items-center gap-2 min-w-[70px] cursor-pointer group">
                 <div class="w-[66px] h-[66px] rounded-full p-0.5 bg-gradient-to-tr from-yellow-400 via-red-500 to-fuchsia-600 group-hover:scale-105 transition-transform shadow-md">
                    <div class="w-full h-full rounded-full border-2 border-white overflow-hidden">
@@ -197,22 +197,37 @@ import { PaymentGatewayService } from '../services/payment.service';
             <button class="text-xs font-bold text-slate-400">Recentes</button>
          </div>
 
+         <!-- Post Input -->
+         @if (authService.isLoggedIn()) {
+           <div class="bg-white rounded-[2rem] p-4 mb-6 shadow-sm border border-slate-100 flex items-center gap-3">
+              <img [src]="authService.currentUser()?.avatar" class="w-10 h-10 rounded-full object-cover">
+              <input 
+                type="text" 
+                [ngModel]="newPostContent()" 
+                (ngModelChange)="newPostContent.set($event)"
+                (keyup.enter)="postStatus()"
+                placeholder="O que está a pensar?" 
+                class="flex-1 bg-slate-50 border-none outline-none py-3 px-5 rounded-full text-sm font-medium">
+              <button (click)="postStatus()" [disabled]="!newPostContent().trim()" class="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-500 disabled:bg-slate-200 transition-all">
+                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+              </button>
+           </div>
+         }
+
          <!-- Feed -->
          <div class="flex flex-col gap-6">
-           @for (post of feedPosts; track post.author) {
+           @for (post of feedPosts(); track post.id) {
               <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
                  <div class="flex items-center gap-3 mb-4">
-                    <img [src]="post.avatar" class="w-10 h-10 rounded-full object-cover shadow-sm">
+                    <img [src]="post.profiles?.avatar || 'https://i.pravatar.cc/150'" class="w-10 h-10 rounded-full object-cover shadow-sm">
                     <div class="text-left">
-                       <div class="font-bold text-slate-900 text-sm">{{ post.author }}</div>
-                       <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">Especialista Verificado</div>
+                       <div class="font-bold text-slate-900 text-sm">{{ post.profiles?.name || 'Utilizador' }}</div>
+                       <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">@if (post.profiles?.is_expert) { Especialista Verificado } @else { Membro da Comunidade }</div>
                     </div>
                     <button class="ml-auto text-blue-600 text-xs font-bold px-3 py-1 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors">Seguir</button>
                  </div>
                  
-                 <div class="rounded-2xl overflow-hidden mb-4 shadow-sm">
-                    <img [src]="post.image" class="w-full h-56 object-cover hover:scale-105 transition-transform duration-700">
-                 </div>
+                 @if (post.image_url) { <div class="rounded-2xl overflow-hidden mb-4 shadow-sm"><img [src]="post.image_url" class="w-full h-56 object-cover hover:scale-105 transition-transform duration-700"></div> }
                  
                  <p class="text-left text-sm text-slate-600 font-medium leading-relaxed mb-4 px-1">
                     {{ post.content }}
@@ -486,27 +501,78 @@ import { PaymentGatewayService } from '../services/payment.service';
            <div class="bg-white/90 backdrop-blur-2xl w-full sm:w-[400px] sm:rounded-[2rem] rounded-t-[2rem] shadow-2xl overflow-hidden relative animate-slide-up sm:animate-zoom-in">
               <div class="w-12 h-1.5 bg-slate-300 rounded-full mx-auto mt-3 mb-5 sm:hidden"></div>
               
-              <div class="p-8 text-center border-b border-black/5">
-                 <img [src]="authService.currentUser()?.avatar" class="w-24 h-24 rounded-full mx-auto mb-4 shadow-lg object-cover">
-                 <h2 class="text-2xl font-bold text-slate-900 tracking-tight">{{ authService.currentUser()?.name }}</h2>
-                 <p class="text-slate-500 font-medium">{{ authService.currentUser()?.email }}</p>
+              <div class="p-8 text-center border-b border-black/5 bg-gradient-to-b from-slate-50 to-white">
+                 <div class="relative w-24 h-24 mx-auto mb-4 group">
+                    <img [src]="authService.currentUser()?.avatar" class="w-24 h-24 rounded-full shadow-lg object-cover border-2 border-white">
+                    <label class="absolute inset-0 flex items-center justify-center bg-black/40 text-white rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity">
+                       <input type="file" class="hidden" (change)="onAvatarSelected($event)">
+                       @if (isUploadingAvatar()) {
+                         <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                       } @else {
+                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                       }
+                    </label>
+                 </div>
+
+                 <input 
+                   type="text" 
+                   [(ngModel)]="userName" 
+                   (blur)="updateName()"
+                   class="text-xl font-black text-slate-900 text-center w-full bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/10 rounded-lg py-1 px-4 mb-1"
+                   placeholder="Seu Nome">
                  
-                 @if (authService.currentUser()?.isExpert) {
-                   <div class="mt-3 inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wide">
-                     <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>
-                     Especialista Verificado
-                   </div>
-                 }
+                 <textarea 
+                   [(ngModel)]="userBio" 
+                   (blur)="updateBio()"
+                   class="text-slate-500 font-medium text-sm text-center w-full bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500/10 rounded-lg py-1 px-4 resize-none h-16 mb-4"
+                   placeholder="Escreva algo sobre si..."></textarea>
                  
-                 @if (!authService.currentUser()?.isExpert && authService.currentUser()?.trialMinutesLeft) {
-                    <div class="mt-3 bg-gradient-to-r from-yellow-100 to-amber-100 border border-yellow-200 text-amber-700 text-xs font-bold px-3 py-2 rounded-xl inline-flex items-center gap-2">
-                       <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
-                       {{ authService.currentUser()?.trialMinutesLeft }} minutos grátis
-                    </div>
-                 }
+                 <div class="flex items-center justify-center gap-3">
+                    @if (authService.currentUser()?.isExpert) {
+                      <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full uppercase tracking-wide">
+                        Especialista Verificado
+                      </div>
+                    }
+                    
+                    @if (authService.currentUser()?.trialMinutesLeft) {
+                       <div class="bg-amber-100 text-amber-700 text-[10px] font-bold px-3 py-1 rounded-full inline-flex items-center gap-1.5">
+                          <span class="w-2 h-2 bg-amber-500 rounded-full animate-pulse"></span>
+                          {{ authService.currentUser()?.trialMinutesLeft }}m Grátis
+                       </div>
+                    }
+                 </div>
               </div>
 
-              <div class="space-y-4 mb-8">
+              <div class="p-4 space-y-4">
+                 <!-- Appearance Settings -->
+                 <div class="px-2">
+                    <h4 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Aparência & Layout</h4>
+                    <div class="flex items-center justify-between mb-4">
+                       <span class="text-sm font-semibold text-slate-700">Modo Escuro</span>
+                       <button (click)="toggleTheme()" 
+                               [class.bg-blue-600]="authService.currentUser()?.theme === 'dark'"
+                               [class.bg-slate-200]="authService.currentUser()?.theme !== 'dark'"
+                               class="w-12 h-6 rounded-full relative transition-colors">
+                          <div [class.translate-x-6]="authService.currentUser()?.theme === 'dark'"
+                               [class.translate-x-1]="authService.currentUser()?.theme !== 'dark'"
+                               class="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform shadow-sm"></div>
+                       </button>
+                    </div>
+
+                    <div class="flex items-center justify-between">
+                       <span class="text-sm font-semibold text-slate-700">Cor Primária</span>
+                       <div class="flex gap-2">
+                          @for (color of ['#2563eb', '#db2777', '#059669', '#7c3aed']; track color) {
+                            <button (click)="updateColor(color)" 
+                                    [style.backgroundColor]="color"
+                                    [class.ring-2]="authService.currentUser()?.primaryColor === color"
+                                    class="w-6 h-6 rounded-full ring-offset-2 ring-slate-300 transition-all active:scale-90"></button>
+                          }
+                       </div>
+                    </div>
+                 </div>
+                 
+                 <div class="h-px bg-slate-100 mx-2"></div>
                  <div class="bg-blue-50 rounded-2xl p-4 border border-blue-100">
                     <h4 class="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Seu Link de Chamada Personalizado</h4>
                     <div class="flex items-center gap-2 bg-white rounded-xl p-3 border border-blue-200">
@@ -765,29 +831,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   isCustomCategory = signal(false);
 
   // Social Feed Data
-  stories = [
-    { name: 'Ana', image: 'https://i.pravatar.cc/150?u=a042581f4e29026024d' },
-    { name: 'João', image: 'https://i.pravatar.cc/150?u=a042581f4e29026704d' },
-    { name: 'Maria', image: 'https://i.pravatar.cc/150?u=a04258114e29026302d' },
-    { name: 'Pedro', image: 'https://i.pravatar.cc/150?u=a04258114e29026708c' },
-  ];
-
-  feedPosts = [
-    {
-      author: 'Carlos Eletricista',
-      avatar: 'https://i.pravatar.cc/150?u=a04258a2462d826712d',
-      content: 'Dica rápida: Se o disjuntor vai abaixo, verifiquem primeiro se há muitos aparelhos ligados na mesma tomada!',
-      likes: 24,
-      image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=500&q=80'
-    },
-    {
-      author: 'Sofia Design',
-      avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026024d',
-      content: 'Antes e depois desta sala! Pequenos detalhes como almofadas fazem toda a diferença.',
-      likes: 56,
-      image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=500&q=80'
-    }
-  ];
+  stories = signal<any[]>([]);
+  feedPosts = signal<any[]>([]);
+  newPostContent = signal('');
+  isUploadingAvatar = signal(false);
+  userName = signal('');
+  userBio = signal('');
 
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -827,6 +876,16 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.showWalletModal.set(true);
       }
     });
+
+    // Populate profile signals
+    const user = this.authService.currentUser();
+    if (user) {
+      this.userName.set(user.name);
+      this.userBio.set(user.bio || '');
+    }
+
+    // Load Social Feed
+    this.loadFeed();
 
     // Simulate live fluctuation of users
     this.countInterval = setInterval(() => {
@@ -1130,4 +1189,59 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.showProfileModal.set(false);
     this.router.navigate(['/plans']);
   }
+  async loadFeed() {
+    const { data } = await this.authService['supabaseService'].getPosts();
+    if (data) {
+      this.feedPosts.set(data);
+    }
+  }
+
+  async postStatus() {
+    const content = this.newPostContent().trim();
+    const user = this.authService.currentUser();
+    if (!content || !user) return;
+
+    const { data } = await this.authService['supabaseService'].createPost({
+      content,
+      profile_id: user.id
+    });
+
+    if (data) {
+      this.newPostContent.set('');
+      this.loadFeed();
+    }
+  }
+
+  async onAvatarSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    this.isUploadingAvatar.set(true);
+    const url = await this.authService.uploadAvatar(file);
+    if (url) {
+      alert('Foto de perfil atualizada!');
+    }
+    this.isUploadingAvatar.set(false);
+  }
+
+  updateName() {
+    if (this.userName().trim()) {
+      this.authService.updateProfile({ name: this.userName().trim() });
+    }
+  }
+
+  updateBio() {
+    this.authService.updateProfile({ bio: this.userBio().trim() });
+  }
+
+  toggleTheme() {
+    const current = this.authService.currentUser()?.theme || 'light';
+    const next = current === 'light' ? 'dark' : 'light';
+    this.authService.updateProfile({ theme: next });
+  }
+
+  updateColor(color: string) {
+    this.authService.updateProfile({ primaryColor: color });
+  }
+
 }

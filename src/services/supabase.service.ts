@@ -258,7 +258,7 @@ export class SupabaseService {
         });
     }
 
-    async createCheckoutSession(amount: number, successUrl: string, cancelUrl: string, mode: 'payment' | 'subscription' = 'payment', plan?: string) {
+    async createCheckoutSession(amount: number, successUrl: string, cancelUrl: string, mode: 'payment' | 'subscription' = 'payment', plan?: string, currency: string = 'brl') {
         if (!this.supabase) throw new Error('Supabase not initialized');
 
         const { data: { user } } = await this.supabase.auth.getUser();
@@ -271,8 +271,49 @@ export class SupabaseService {
                 successUrl,
                 cancelUrl,
                 type: mode,     // Edge function expects 'type', not 'mode'
-                plan: plan      // Edge function expects 'plan', not 'priceId'
+                plan: plan,      // Edge function expects 'plan', not 'priceId'
+                currency: currency
             }
         });
+    }
+
+    // ============================
+    // SOCIAL FEED
+    // ============================
+
+    async getPosts() {
+        if (!this.supabase) return { data: null, error: 'Not initialized' };
+        return this.supabase
+            .from('posts')
+            .select('*, profiles(name, avatar, is_expert)')
+            .order('created_at', { ascending: false });
+    }
+
+    async createPost(post: { content: string, image_url?: string, profile_id: string }) {
+        if (!this.supabase) return { data: null, error: 'Not initialized' };
+        return this.supabase
+            .from('posts')
+            .insert(post)
+            .select()
+            .single();
+    }
+
+    async uploadFile(path: string, file: File): Promise<string | null> {
+        if (!this.supabase) return null;
+
+        const { data, error } = await this.supabase.storage
+            .from('ajudai-assets')
+            .upload(path, file, { upsert: true });
+
+        if (error) {
+            console.error('Error uploading file:', error);
+            return null;
+        }
+
+        const { data: { publicUrl } } = this.supabase.storage
+            .from('ajudai-assets')
+            .getPublicUrl(path);
+
+        return publicUrl;
     }
 }

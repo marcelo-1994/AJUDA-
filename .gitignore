@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Angular
+.angular
+/.angular/cache
+
+# Temporary
+.temp_ag_kit
+temp
+tmp
