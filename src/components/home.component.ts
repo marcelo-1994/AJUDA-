@@ -703,6 +703,92 @@ import { PaymentGatewayService } from '../services/payment.service';
            </div>
         </div>
       }
+
+      <!-- 5. Welcome Tutorial Modal -->
+      @if (showTutorial()) {
+        <div class="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-4">
+           <!-- Backdrop escuro forte para focar no tutorial -->
+           <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-md transition-opacity"></div>
+           
+           <div class="bg-white w-full max-w-sm sm:max-w-md rounded-[2rem] shadow-2xl overflow-hidden relative p-8 sm:p-10 flex flex-col items-center text-center">
+              
+              <!-- Skip Button -->
+              <button (click)="finishTutorial()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-sm font-bold bg-slate-100 px-3 py-1.5 rounded-full transition-colors">
+                Pular
+              </button>
+
+              <!-- Step 1 -->
+              @if (tutorialStep() === 1) {
+                <div class="space-y-6 slide-enter">
+                   <div class="w-24 h-24 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.562 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+                      </svg>
+                   </div>
+                   <div>
+                     <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-3 tracking-tight">Bem-vindo ao AJUDAÍ 👋</h2>
+                     <p class="text-slate-500 font-medium leading-relaxed text-sm sm:text-base">
+                       Está preso num problema técnico ou doméstico? Nós ligamos você em <strong>vídeo ao vivo</strong> aos melhores especialistas em segundos.
+                     </p>
+                   </div>
+                </div>
+              }
+
+              <!-- Step 2 -->
+              @if (tutorialStep() === 2) {
+                <div class="space-y-6 slide-enter">
+                   <div class="w-24 h-24 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto shadow-inner relative">
+                      <div class="absolute -top-2 -right-2 bg-indigo-500 text-white text-xs font-bold px-2.5 py-1 rounded-full animate-bounce">IA</div>
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" />
+                      </svg>
+                   </div>
+                   <div>
+                     <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-3 tracking-tight">Como Funciona? 🤖</h2>
+                     <p class="text-slate-500 font-medium leading-relaxed text-sm sm:text-base">
+                       1. Digita ou <strong class="text-slate-700">grava um áudio</strong> do teu problema.<br>
+                       2. A nossa Inteligência Artificial encontra a categoria certa.<br>
+                       3. Escolhes o profissional e a chamada começa!
+                     </p>
+                   </div>
+                </div>
+              }
+
+              <!-- Step 3 -->
+              @if (tutorialStep() === 3) {
+                <div class="space-y-6 slide-enter">
+                   <div class="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner relative">
+                      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-12 h-12">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m-3 2.818.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                      </svg>
+                   </div>
+                   <div>
+                     <h2 class="text-2xl sm:text-3xl font-black text-slate-900 mb-3 tracking-tight">Grátis para Testar! 🎁</h2>
+                     <p class="text-slate-500 font-medium leading-relaxed text-sm sm:text-base">
+                       Para conheceres o serviço, o teu <strong class="text-emerald-600">primeiro minuto é totalmente gratuito</strong>. Experimenta agora sem compromisso!
+                     </p>
+                   </div>
+                </div>
+              }
+
+              <!-- Controls -->
+              <div class="w-full mt-10">
+                 <!-- Progress Dots -->
+                 <div class="flex justify-center gap-2 mb-6">
+                    <div [class.bg-blue-600]="tutorialStep() === 1" [class.bg-slate-200]="tutorialStep() !== 1" class="w-2 h-2 rounded-full transition-colors"></div>
+                    <div [class.bg-blue-600]="tutorialStep() === 2" [class.bg-slate-200]="tutorialStep() !== 2" class="w-2 h-2 rounded-full transition-colors"></div>
+                    <div [class.bg-blue-600]="tutorialStep() === 3" [class.bg-slate-200]="tutorialStep() !== 3" class="w-2 h-2 rounded-full transition-colors"></div>
+                 </div>
+
+                 <!-- Next/Finish Action -->
+                 <button (click)="nextTutorialStep()" class="w-full bg-slate-900 hover:bg-slate-800 text-white py-4 rounded-2xl font-bold text-lg transition-all shadow-xl shadow-slate-900/20 active:scale-95">
+                    {{ tutorialStep() === 3 ? 'Começar a Usar' : 'Próximo' }}
+                 </button>
+              </div>
+
+           </div>
+        </div>
+      }
     </div>
   `,
   styles: [`
@@ -745,9 +831,14 @@ import { PaymentGatewayService } from '../services/payment.service';
       from { transform: translateY(100%); }
       to { transform: translateY(0); }
     }
-    .animate-slide-up {
-      animation: slide-up 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
+      /* Tutorial Modal Specifics */
+      .slide-enter {
+        animation: slideInRight 0.4s ease-out forwards;
+      }
+      @keyframes slideInRight {
+        from { opacity: 0; transform: translateX(50px); }
+        to { opacity: 1; transform: translateX(0); }
+      }
   `]
 })
 export class HomeComponent implements OnInit, OnDestroy {
@@ -764,6 +855,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   showReferralModal = signal(false);
   showProviderModal = signal(false);
   showWalletModal = signal(false);
+  showTutorial = signal(false);
+  tutorialStep = signal(1);
 
   // Deposit state
   depositAmount = signal(10);
@@ -838,6 +931,11 @@ export class HomeComponent implements OnInit, OnDestroy {
       this.userBio.set(user.bio || '');
     }
 
+    // Check Tutorial State
+    if (!localStorage.getItem('ajudai_tutorial_seen')) {
+      setTimeout(() => this.showTutorial.set(true), 500);
+    }
+
     // Load Social Feed
     this.loadFeed();
 
@@ -846,6 +944,19 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     if (this.countInterval) clearInterval(this.countInterval);
+  }
+
+  nextTutorialStep() {
+    if (this.tutorialStep() < 3) {
+      this.tutorialStep.update(s => s + 1);
+    } else {
+      this.finishTutorial();
+    }
+  }
+
+  finishTutorial() {
+    this.showTutorial.set(false);
+    localStorage.setItem('ajudai_tutorial_seen', 'true');
   }
 
   reload() {
