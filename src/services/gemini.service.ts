@@ -24,13 +24,13 @@ export class GeminiService {
     if (!this.ai) {
       return {
         category: 'Outros',
-        quickTip: 'Análise automática indisponível. Nossos especialistas podem ajudar!',
-        matchScore: 50
+        quickTip: 'O serviço de IA não está inicializado no momento. Por favor, tente novamente mais tarde.',
+        matchScore: 0
       };
     }
     try {
       const response = await (this.ai as any).models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3.1-pro',
         contents: [{
           role: 'user',
           parts: [{
@@ -61,8 +61,8 @@ export class GeminiService {
       console.error('Gemini Analysis Error:', error);
       return {
         category: 'Outros',
-        quickTip: 'Não conseguimos analisar o problema automaticamente, mas nossos especialistas podem ajudar.',
-        matchScore: 50
+        quickTip: 'Houve um erro ao analisar seu problema. Um especialista humano poderá ajudar em breve.',
+        matchScore: 0
       };
     }
   }
@@ -71,8 +71,8 @@ export class GeminiService {
     if (!this.ai) {
       return {
         category: 'Outros',
-        quickTip: 'Análise automática indisponível. Nossos especialistas podem ajudar!',
-        matchScore: 50
+        quickTip: 'O serviço de voz não está disponível agora.',
+        matchScore: 0
       };
     }
 
@@ -88,7 +88,7 @@ export class GeminiService {
       const base64Audio = await base64Promise;
 
       const response = await (this.ai as any).models.generateContent({
-        model: 'gemini-1.5-flash',
+        model: 'gemini-3.1-pro',
         contents: [
           {
             role: 'user',
@@ -131,8 +131,8 @@ export class GeminiService {
       console.error('Gemini Voice Analysis Error:', error);
       return {
         category: 'Outros',
-        quickTip: 'Não conseguimos analisar o áudio, mas um especialista pode ouvir!',
-        matchScore: 50
+        quickTip: 'Erro ao processar áudio. Tente descrever o problema por texto.',
+        matchScore: 0
       };
     }
   }

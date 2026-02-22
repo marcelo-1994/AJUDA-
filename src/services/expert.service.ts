@@ -42,17 +42,14 @@ export class ExpertService {
       if (data && !error) {
         this.categories.set(data.map((c: any) => c.name));
       } else {
-        this.setFallbackCategories();
+        this.categories.set([]);
       }
     } catch (error) {
-      console.warn('Failed to load categories from Supabase:', error);
-      this.setFallbackCategories();
+      console.error('Failed to load categories from Supabase:', error);
+      this.categories.set([]);
     }
   }
 
-  private setFallbackCategories() {
-    this.categories.set([]);
-  }
 
   /**
    * Carrega todos os experts do Supabase.
@@ -160,14 +157,7 @@ export class ExpertService {
         return cats;
       });
     } else {
-      // Fallback local
-      this.experts.update(list => [expert, ...list]);
-      this.categories.update(cats => {
-        if (!cats.includes(expert.category)) {
-          return [...cats, expert.category];
-        }
-        return cats;
-      });
+      console.error('Failed to add expert to Supabase:', error);
     }
   }
 }

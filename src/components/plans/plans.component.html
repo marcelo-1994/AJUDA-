@@ -1,60 +1,157 @@
-<div class="plans-container">
-    <h2>Escolha seu Plano</h2>
-
-    <div class="plans-grid">
-        <!-- FREE -->
-        <div class="plan-card free" [class.active]="!authService.isSubscriber()">
-            <div class="plan-header">
-                <h3>Free</h3>
-                <p class="price">R$ 0<span>/mês</span></p>
+<div class="animate-fade pb-20">
+    <main class="max-w-6xl mx-auto px-4 sm:px-6">
+        <!-- Header -->
+        <div class="text-center mb-20 pt-10">
+            <div
+                class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-blue-600 font-bold text-[10px] uppercase tracking-widest mb-6">
+                <span class="relative flex h-2 w-2">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                Impulsione sua Jornada
             </div>
-            <ul class="features">
-                <li>✅ Acesso à plataforma</li>
-                <li>✅ 1 min de Trial (Degustação)</li>
-                <li>❌ Taxas reduzidas</li>
-                <li>❌ Badge exclusiva</li>
-            </ul>
-            <button class="btn-plan" [disabled]="true">Plano Atual</button>
+            <h2 class="text-5xl font-black text-slate-900 tracking-tight font-display mb-6">Escolha o seu Plano</h2>
+            <p class="text-slate-500 font-medium text-lg max-w-2xl mx-auto">
+                Desbloqueie benefícios exclusivos, reduza taxas e conecte-se com a elite dos especialistas.
+            </p>
         </div>
 
-        <!-- PRO -->
-        <div class="plan-card pro" [class.active]="authService.isPro()">
-            <div class="plan-header">
-                <h3>Pro</h3>
-                <p class="price">R$ 9,90<span>/mês</span></p>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch">
+            <!-- FREE -->
+            <div
+                class="glass group rounded-[2.5rem] p-10 border border-black/5 flex flex-col shadow-premium transition-all hover:translate-y-[-8px] relative overflow-hidden">
+                <div class="mb-10">
+                    <h3 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Base</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-5xl font-black text-slate-900 tracking-tighter">Gratuito</span>
+                    </div>
+                </div>
+
+                <ul class="space-y-4 mb-12 flex-1">
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-600">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-xs">✓</span>
+                        Acesso à plataforma
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-600">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-green-50 text-green-600 flex items-center justify-center text-xs">✓</span>
+                        1 min de Trial
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-300">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-slate-50 text-slate-300 flex items-center justify-center text-xs">✕</span>
+                        Taxas reduzidas
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-300">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-slate-50 text-slate-300 flex items-center justify-center text-xs">✕</span>
+                        Badge exclusiva
+                    </li>
+                </ul>
+
+                <button
+                    class="w-full py-5 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] cursor-not-allowed">
+                    Plano Atual
+                </button>
             </div>
-            <ul class="features">
-                <li>✅ Tudo do Free</li>
-                <li>✅ <strong>Badge PRO</strong> no perfil</li>
-                <li>✅ <strong>50% OFF</strong> nas taxas da plataforma</li>
-                <li>✅ Suporte prioritário</li>
-            </ul>
 
-            <!-- Botão Pro -->
-            <button class="btn-plan pro-btn" *ngIf="!authService.isPro()" (click)="subscribe('pro')">
-                {{ authService.isPremium() ? 'Downgrade para Pro' : 'Assinar Pro' }}
-            </button>
-            <button class="btn-plan" *ngIf="authService.isPro()" [disabled]="true">Plano Atual</button>
-        </div>
+            <!-- PRO (Popular) -->
+            <div
+                class="bg-slate-900 group rounded-[2.5rem] p-10 flex flex-col shadow-2xl shadow-blue-500/10 transition-all hover:translate-y-[-12px] relative overflow-hidden">
+                <!-- Highlight Badge -->
+                <div
+                    class="absolute top-6 right-6 px-4 py-1.5 bg-blue-600 text-white rounded-full text-[9px] font-black uppercase tracking-widest">
+                    Popular
+                </div>
 
-        <!-- PREMIUM -->
-        <div class="plan-card premium" [class.active]="authService.isPremium()">
-            <div class="plan-header">
-                <h3>Premium</h3>
-                <p class="price">R$ 19,90<span>/mês</span></p>
+                <div class="mb-10 relative z-10">
+                    <h3 class="text-[11px] font-black text-blue-400 uppercase tracking-[0.2em] mb-4">Avançado</h3>
+                    <div class="flex items-baseline gap-1 text-white">
+                        <span class="text-sm font-bold opacity-60">R$</span>
+                        <span class="text-6xl font-black tracking-tighter">9,90</span>
+                        <span class="text-sm font-bold opacity-60">/mês</span>
+                    </div>
+                </div>
+
+                <ul class="space-y-4 mb-12 flex-1 relative z-10">
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-300">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs">✓</span>
+                        Tudo do plano Free
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-white">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs">✓</span>
+                        Badge <span class="text-blue-400 ml-1">PRO</span> no perfil
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-white">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs">✓</span>
+                        <span class="text-blue-400 mr-1">50% OFF</span> nas taxas
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-white">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center text-xs">✓</span>
+                        Suporte Prioritário
+                    </li>
+                </ul>
+
+                <button *ngIf="!authService.isPro()" (click)="subscribe('pro')"
+                    class="relative z-10 w-full py-5 bg-blue-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-blue-500 hover:shadow-xl hover:shadow-blue-500/20 transition-all active:scale-95">
+                    {{ authService.isPremium() ? 'Downgrade' : 'Subscrever Agora' }}
+                </button>
+                <button *ngIf="authService.isPro()"
+                    class="relative z-10 w-full py-5 bg-white/10 text-white/40 rounded-2xl font-black uppercase tracking-widest text-[10px] cursor-not-allowed">
+                    Plano Ativo
+                </button>
             </div>
-            <ul class="features">
-                <li>✅ Tudo do Pro</li>
-                <li>✅ <strong>Badge PREMIUM</strong> (Dourado)</li>
-                <li>✅ <strong>TAXA ZERO</strong> da plataforma</li>
-                <li>✅ Acesso Ilimitado sem filas</li>
-            </ul>
 
-            <!-- Botão Premium -->
-            <button class="btn-plan premium-btn" *ngIf="!authService.isPremium()" (click)="subscribe('premium')">
-                {{ authService.isPro() ? 'Upgrade para Premium' : 'Assinar Premium' }}
-            </button>
-            <button class="btn-plan" *ngIf="authService.isPremium()" [disabled]="true">Plano Atual</button>
+            <!-- PREMIUM -->
+            <div
+                class="glass group rounded-[2.5rem] p-10 border border-black/5 flex flex-col shadow-premium transition-all hover:translate-y-[-8px] relative overflow-hidden">
+                <div class="mb-10">
+                    <h3 class="text-[11px] font-black text-amber-500 uppercase tracking-[0.2em] mb-4">Elite</h3>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-sm font-bold text-slate-400">R$</span>
+                        <span class="text-6xl font-black text-slate-900 tracking-tighter">19,90</span>
+                        <span class="text-sm font-bold text-slate-400">/mês</span>
+                    </div>
+                </div>
+
+                <ul class="space-y-4 mb-12 flex-1">
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-600">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs">✓</span>
+                        Tudo do plano Pro
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-900">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs">✓</span>
+                        Badge <span class="text-amber-500 ml-1">PREMIUM</span> (Dourado)
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-900">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs">✓</span>
+                        <span class="text-amber-600 mr-1">TAXA ZERO</span> da plataforma
+                    </li>
+                    <li class="flex items-center gap-3 text-sm font-bold text-slate-900">
+                        <span
+                            class="w-6 h-6 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center text-xs">✓</span>
+                        Acesso Ilimitado s/ Filas
+                    </li>
+                </ul>
+
+                <button *ngIf="!authService.isPremium()" (click)="subscribe('premium')"
+                    class="w-full py-5 bg-amber-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-amber-400 hover:shadow-xl hover:shadow-amber-500/20 transition-all active:scale-95">
+                    Fazer Upgrade
+                </button>
+                <button *ngIf="authService.isPremium()"
+                    class="w-full py-5 bg-slate-100 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] cursor-not-allowed">
+                    Plano Ativo
+                </button>
+            </div>
         </div>
-    </div>
+    </main>
 </div>

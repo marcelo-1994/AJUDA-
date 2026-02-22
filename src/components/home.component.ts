@@ -14,136 +14,75 @@ import { PaymentGatewayService } from '../services/payment.service';
   standalone: true,
   imports: [CommonModule, FormsModule, ReactiveFormsModule],
   template: `
-    <div class="min-h-screen bg-[#F2F2F7] text-slate-900 font-sans selection:bg-blue-500/30 selection:text-blue-900 flex flex-col relative overflow-hidden">
-      
-      <!-- iOS-style Gradient Background Orbs -->
-      <div class="fixed inset-0 pointer-events-none z-0">
-        <div class="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] bg-blue-400/20 rounded-full blur-[120px] animate-blob"></div>
-        <div class="absolute top-[20%] -right-[10%] w-[60vw] h-[60vw] bg-indigo-400/20 rounded-full blur-[120px] animate-blob animation-delay-2000"></div>
-        <div class="absolute -bottom-[20%] left-[20%] w-[60vw] h-[60vw] bg-purple-400/20 rounded-full blur-[120px] animate-blob animation-delay-4000"></div>
-      </div>
-
-      <!-- Navbar (Glass) -->
-      <nav class="sticky top-0 z-50 px-6 py-4 flex justify-between items-center bg-white/70 backdrop-blur-xl border-b border-black/5 supports-[backdrop-filter]:bg-white/60">
-        <div class="text-2xl font-bold tracking-tight flex items-center gap-1 cursor-pointer" (click)="reload()">
-            AJUDA<span class="text-blue-500">Í</span>
-        </div>
-        
-        <div class="flex items-center gap-4">
-          @if (!authService.isLoggedIn()) {
-            <button (click)="initiateGoogleLogin()" aria-label="Entrar na conta" class="text-[15px] font-medium text-slate-500 hover:text-blue-600 transition-colors">Entrar</button>
-            <button (click)="initiateGoogleLogin()" aria-label="Criar nova conta" class="px-5 py-2 rounded-full bg-blue-600 text-white font-semibold text-[15px] hover:bg-blue-500 transition-all shadow-lg shadow-blue-600/20 active:scale-95">
-              Aceder com Google
-            </button>
-          } @else {
-            <div class="flex items-center gap-3 cursor-pointer group" (click)="toggleProfile()">
-               <div class="text-right hidden sm:block">
-                 <div class="text-[13px] font-semibold text-slate-900 leading-none">{{ authService.currentUser()?.name }}</div>
-                 <div class="text-[11px] text-blue-600 font-bold leading-none mt-1 hover:underline" (click)="$event.stopPropagation(); openWallet()">Saldo: {{ currencyService.formatSimple(authService.currentUser()?.balance || 0) }}</div>
-               </div>
-               <img [src]="authService.currentUser()?.avatar" class="w-9 h-9 rounded-full border border-slate-200 group-hover:border-blue-300 transition-colors object-cover">
-            </div>
-          }
-        </div>
-      </nav>
-
-      <!-- Main Content -->
-      <main class="relative z-10 flex-1 flex flex-col items-center justify-center p-6 text-center w-full max-w-4xl mx-auto mt-[-40px]">
-        
-        <!-- What is AJUDA Í Explanation -->
-        <div class="mb-8 animate-fade-in-up">
-           <span class="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border border-blue-100">O que é o AJUDA Í?</span>
-           <p class="text-slate-600 text-sm font-medium mt-3 max-w-md mx-auto leading-relaxed">
-             A plataforma que te liga a especialistas prontos a ajudar <span class="text-slate-900 font-bold">via vídeo</span>. 
-             Resolve problemas de canalização, informática, beleza e muito mais, num instante.
-           </p>
+    <div class="animate-fade">
+      <main>
+        <!-- Hero Section -->
+      <section class="relative py-12 md:py-20 overflow-hidden rounded-[2.5rem] bg-white shadow-premium border border-black/5 mb-10">
+        <div class="absolute inset-0 pointer-events-none">
+          <div class="absolute -top-[20%] -left-[10%] w-[70vw] h-[70vw] bg-blue-400/5 rounded-full blur-[120px]"></div>
+          <div class="absolute top-[20%] -right-[10%] w-[60vw] h-[60vw] bg-indigo-400/5 rounded-full blur-[120px]"></div>
         </div>
 
-        <!-- Live Indicator Pill -->
-        <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-white/60 backdrop-blur-md border border-white/40 rounded-full shadow-sm mb-8 animate-fade-in-up">
-           <span class="relative flex h-2.5 w-2.5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-green-500"></span>
-            </span>
-            <span class="text-xs font-semibold text-slate-600 tracking-wide">
-              <span class="font-bold text-slate-900">{{ onlineCount() }}</span> pessoas e especialistas online
-            </span>
-        </div>
+        <div class="relative z-10 max-w-3xl mx-auto text-center px-6">
+          <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-blue-50 border border-blue-100 rounded-full text-blue-600 font-bold text-[10px] uppercase tracking-widest mb-8 animate-slide">
+             <span class="relative flex h-2 w-2">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+              </span>
+              Ajuda Profissional em Vídeo
+          </div>
 
-        <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-[1.1] animate-fade-in-up delay-100">
-          Problema resolvido.
-          <br>
-          <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">Num instante.</span>
-        </h1>
-        
-        <p class="text-lg md:text-xl text-slate-500 max-w-lg mx-auto mb-10 font-medium leading-relaxed animate-fade-in-up delay-200">
-          Videochamadas de 5 minutos com especialistas. 
-          Rápido, seguro e sem complicações.
-        </p>
+          <h1 class="text-5xl md:text-7xl font-black tracking-tight text-slate-900 mb-6 leading-[1.05] animate-slide delay-100">
+            Problema resolvido.<br>
+            <span class="text-blue-600">Num instante.</span>
+          </h1>
+          
+          <p class="text-lg md:text-xl text-slate-500 mb-10 font-medium leading-relaxed animate-slide delay-200">
+            Conecte-se com especialistas em segundos via videochamada. 
+            Simples, direto e sem complicações.
+          </p>
 
-        <!-- SOS URGENT BUTTON (PRIORITY) -->
-        <div class="w-full max-w-2xl mb-8 animate-fade-in-up delay-250">
-          <button (click)="activateSOS()" 
-            class="w-full py-6 bg-red-600 hover:bg-red-500 text-white rounded-[2rem] font-black text-2xl md:text-3xl shadow-[0_12px_40px_rgba(220,38,38,0.3)] hover:shadow-[0_15px_50px_rgba(220,38,38,0.4)] transition-all active:scale-95 flex items-center justify-center gap-4 group">
-            <span class="relative flex h-5 w-5">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-5 w-5 bg-white"></span>
-            </span>
-            MODO SOS: AJUDA AGORA
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-8 h-8 group-hover:translate-x-2 transition-transform">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-            </svg>
-          </button>
-        </div>
-
-        <!-- iOS Spotlight Search Input -->
-        <div class="w-full max-w-2xl relative group z-20 animate-fade-in-up delay-300">
-          <div class="absolute -inset-1 bg-gradient-to-r from-blue-100 to-purple-100 rounded-[2rem] blur opacity-50 group-focus-within:opacity-100 transition duration-500"></div>
-          <div class="relative flex items-center bg-white/80 backdrop-blur-xl rounded-[2rem] shadow-[0_8px_40px_rgba(0,0,0,0.08)] border border-white/50 focus-within:ring-4 focus-within:ring-blue-500/10 focus-within:bg-white transition-all duration-300">
-            <div class="pl-6 text-slate-400">
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+          <div class="flex flex-col sm:flex-row gap-4 justify-center items-center mb-10 animate-slide delay-300">
+            <button (click)="activateSOS()" 
+              class="w-full sm:w-auto px-10 py-5 bg-red-600 hover:bg-red-500 text-white rounded-2xl font-black text-xl shadow-lg shadow-red-600/20 transition-all active:scale-95 flex items-center justify-center gap-3">
+              MODO SOS: AGORA
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor" class="w-6 h-6">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
               </svg>
-            </div>
-            <input 
-              type="text" 
-              [ngModel]="problemQuery()"
-              (ngModelChange)="problemQuery.set($event)"
-              (keyup.enter)="analyzeAndSearch()"
-              [placeholder]="isRecording() ? 'A ouvir o seu problema...' : 'O que precisas de resolver agora?'" 
-              aria-label="Descreva o seu problema para análise"
-              class="w-full bg-transparent border-none outline-none py-5 px-4 text-lg font-medium text-slate-900 placeholder:text-slate-400/80 rounded-[2rem]"
-            >
-            <div class="pr-2 flex items-center gap-2">
-              <button 
-                (click)="toggleRecording()"
-                [class]="isRecording() ? 'bg-red-500 animate-pulse' : 'bg-slate-100 hover:bg-slate-200 text-slate-600'"
-                aria-label="Gravar áudio"
-                class="rounded-full p-3 transition-all duration-300 shadow-sm flex items-center justify-center">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
-                </svg>
-              </button>
+            </button>
+          </div>
 
-              <button 
-                (click)="analyzeAndSearch()"
-                [disabled]="isAnalyzing() || !problemQuery() || isRecording()"
-                aria-label="Analisar problema"
-                class="bg-blue-600 hover:bg-blue-500 disabled:bg-slate-200 disabled:text-slate-400 text-white rounded-full p-3 transition-all duration-300 shadow-md hover:scale-105 active:scale-95 flex items-center justify-center">
-                @if (isAnalyzing()) {
-                  <svg class="animate-spin h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          <!-- Search Input -->
+          <div class="relative group max-w-xl mx-auto animate-slide delay-400">
+            <div class="absolute -inset-1 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-[2rem] blur opacity-40 group-focus-within:opacity-100 transition duration-500"></div>
+            <div class="relative flex items-center bg-slate-50 border border-black/5 rounded-[2rem] p-1.5 focus-within:bg-white focus-within:ring-4 focus-within:ring-blue-500/5 transition-all duration-300">
+              <div class="pl-4 text-slate-400">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+              </div>
+              <input 
+                type="text" 
+                [ngModel]="problemQuery()"
+                (ngModelChange)="problemQuery.set($event)"
+                (keyup.enter)="analyzeAndSearch()"
+                [placeholder]="isRecording() ? 'A ouvir...' : 'O que precisas de resolver?'" 
+                class="w-full bg-transparent border-none outline-none py-4 px-3 text-lg font-semibold text-slate-900 placeholder:text-slate-400"
+              >
+              <div class="flex items-center gap-2">
+                <button 
+                  (click)="toggleRecording()"
+                  [class]="isRecording() ? 'bg-red-500 animate-pulse text-white' : 'bg-white text-slate-400 hover:text-blue-600'"
+                  class="rounded-xl p-3 shadow-md active:scale-95 transition-all">
+                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 18.75a6 6 0 0 0 6-6v-1.5m-6 7.5a6 6 0 0 1-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 0 1-3-3V4.5a3 3 0 1 1 6 0v8.25a3 3 0 0 1-3 3Z" />
                   </svg>
-                } @else {
-                  <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-6 h-6">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
-                  </svg>
-                }
-              </button>
+                </button>
+              </div>
             </div>
           </div>
         </div>
+      </section>
 
         <!-- Quick Chips -->
         <div class="mt-8 flex flex-wrap justify-center gap-3 animate-fade-in-up delay-500">
@@ -159,97 +98,112 @@ import { PaymentGatewayService } from '../services/payment.service';
 
 
 
-      <!-- SOCIAL FEED SECTION -->
-      <div class="w-full max-w-2xl mx-auto px-6 mb-12 animate-fade-in-up delay-700">
-         
-         <!-- Stories Header -->
-         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-slate-900">Histórias</h3>
-            <button class="text-blue-600 text-xs font-bold">Ver tudo</button>
-         </div>
+      <!-- Stories Section -->
+      <section class="max-w-4xl mx-auto mb-16 overflow-hidden">
+        <div class="flex items-center justify-between px-6 mb-6">
+          <h3 class="text-xl font-bold font-display">Histórias de Sucesso</h3>
+          <button class="text-blue-600 font-bold text-xs uppercase tracking-widest hover:underline transition-all">Ver Tudo</button>
+        </div>
+        
+        <div class="flex gap-4 overflow-x-auto pb-4 px-6 scrollbar-hide">
+          <!-- Add Story -->
+          <div class="flex flex-col items-center gap-2 min-w-[72px] group">
+            <div class="w-[72px] h-[72px] rounded-full border-2 border-dashed border-slate-200 flex items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition-all bg-white">
+              <span class="text-blue-600 text-2xl font-bold">+</span>
+            </div>
+            <span class="text-[11px] font-bold text-slate-400">Publicar</span>
+          </div>
 
-         <!-- Stories -->
-         <div class="flex gap-4 overflow-x-auto pb-4 mb-8 scrollbar-hide">
-           <div class="flex flex-col items-center gap-2 min-w-[70px]">
-              <div class="w-[66px] h-[66px] rounded-full bg-blue-50 border-2 border-dashed border-blue-400 p-1 flex items-center justify-center cursor-pointer hover:bg-blue-100 transition-colors">
-                 <div class="w-full h-full bg-slate-200 rounded-full flex items-center justify-center text-blue-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                 </div>
-              </div>
-              <span class="text-[11px] font-bold text-slate-600">Tu</span>
-           </div>
-
-           @for (story of stories(); track story.name) {
-             <div class="flex flex-col items-center gap-2 min-w-[70px] cursor-pointer group">
-                <div class="w-[66px] h-[66px] rounded-full p-0.5 bg-gradient-to-tr from-yellow-400 via-red-500 to-fuchsia-600 group-hover:scale-105 transition-transform shadow-md">
-                   <div class="w-full h-full rounded-full border-2 border-white overflow-hidden">
-                     <img [src]="story.image" class="w-full h-full object-cover">
-                   </div>
+          @for (story of stories(); track story.name) {
+            <div class="flex flex-col items-center gap-2 min-w-[72px] group cursor-pointer transition-transform active:scale-95">
+              <div class="w-[72px] h-[72px] rounded-full p-[3px] bg-gradient-to-tr from-blue-500 to-indigo-600 group-hover:shadow-lg shadow-blue-500/20 transition-all">
+                <div class="w-full h-full rounded-full border-2 border-white overflow-hidden bg-slate-100">
+                  <img [src]="story.image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
                 </div>
-                <span class="text-[11px] font-medium text-slate-600 truncate w-16 text-center">{{ story.name }}</span>
-             </div>
-           }
-         </div>
+              </div>
+              <span class="text-[11px] font-bold text-slate-600 truncate w-full text-center">{{ story.name }}</span>
+            </div>
+          }
+        </div>
+      </section>
 
-         <!-- Feed Header -->
-         <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-bold text-slate-900">Na Comunidade</h3>
-            <button class="text-xs font-bold text-slate-400">Recentes</button>
-         </div>
+      <!-- Community Feed -->
+      <section class="max-w-4xl mx-auto px-6 mb-20">
+        <div class="flex items-center justify-between mb-8">
+          <div>
+            <h3 class="text-2xl font-bold font-display tracking-tight text-slate-900">Na Comunidade</h3>
+            <p class="text-slate-400 text-sm font-medium">Partilha e ajuda os outros membros</p>
+          </div>
+        </div>
 
-         <!-- Post Input -->
-         @if (authService.isLoggedIn()) {
-           <div class="bg-white rounded-[2rem] p-4 mb-6 shadow-sm border border-slate-100 flex items-center gap-3">
-              <img [src]="authService.currentUser()?.avatar" class="w-10 h-10 rounded-full object-cover">
-              <input 
-                type="text" 
-                [ngModel]="newPostContent()" 
-                (ngModelChange)="newPostContent.set($event)"
-                (keyup.enter)="postStatus()"
-                placeholder="O que está a pensar?" 
-                class="flex-1 bg-slate-50 border-none outline-none py-3 px-5 rounded-full text-sm font-medium">
-              <button (click)="postStatus()" [disabled]="!newPostContent().trim()" class="p-2.5 bg-blue-600 text-white rounded-full hover:bg-blue-500 disabled:bg-slate-200 transition-all">
-                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
-              </button>
-           </div>
-         }
+        <!-- Post Input -->
+        @if (authService.isLoggedIn()) {
+          <div class="bg-white rounded-3xl p-5 mb-10 shadow-premium border border-black/5 flex items-center gap-4 group focus-within:ring-2 focus-within:ring-blue-100 transition-all">
+            <img [src]="authService.currentUser()?.avatar" class="w-12 h-12 rounded-2xl object-cover shadow-sm">
+            <input 
+              type="text" 
+              [ngModel]="newPostContent()" 
+              (ngModelChange)="newPostContent.set($event)"
+              (keyup.enter)="postStatus()"
+              placeholder="O que está a pensar?" 
+              class="flex-1 bg-transparent border-none outline-none font-medium text-slate-900 placeholder:text-slate-400">
+            <button (click)="postStatus()" [disabled]="!newPostContent().trim()" class="p-3 bg-blue-600 text-white rounded-2xl hover:bg-blue-500 disabled:bg-slate-100 disabled:text-slate-300 shadow-lg shadow-blue-500/20 transition-all active:scale-90">
+               <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        }
 
-         <!-- Feed -->
-         <div class="flex flex-col gap-6">
-           @for (post of feedPosts(); track post.id) {
-              <div class="bg-white rounded-[2rem] p-5 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                 <div class="flex items-center gap-3 mb-4">
-                    <img [src]="post.profiles?.avatar || 'https://i.pravatar.cc/150'" class="w-10 h-10 rounded-full object-cover shadow-sm">
-                    <div class="text-left">
-                       <div class="font-bold text-slate-900 text-sm">{{ post.profiles?.name || 'Utilizador' }}</div>
-                       <div class="text-[10px] text-slate-400 font-bold uppercase tracking-wide">@if (post.profiles?.is_expert) { Especialista Verificado } @else { Membro da Comunidade }</div>
-                    </div>
-                    <button class="ml-auto text-blue-600 text-xs font-bold px-3 py-1 bg-blue-50 rounded-full hover:bg-blue-100 transition-colors">Seguir</button>
-                 </div>
-                 
-                 @if (post.image_url) { <div class="rounded-2xl overflow-hidden mb-4 shadow-sm"><img [src]="post.image_url" class="w-full h-56 object-cover hover:scale-105 transition-transform duration-700"></div> }
-                 
-                 <p class="text-left text-sm text-slate-600 font-medium leading-relaxed mb-4 px-1">
-                    {{ post.content }}
-                 </p>
+        <!-- Feed Posts -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          @for (post of feedPosts(); track post.id) {
+             <div class="bg-white rounded-3xl p-6 shadow-premium border border-black/5 hover:translate-y-[-4px] transition-all duration-300 group">
+                <div class="flex items-center gap-3 mb-6">
+                   <div class="relative">
+                     <img [src]="post.profiles?.avatar || 'https://i.pravatar.cc/150'" class="w-12 h-12 rounded-2xl object-cover shadow-sm">
+                     @if (post.profiles?.is_expert) {
+                       <div class="absolute -bottom-1 -right-1 w-5 h-5 bg-blue-600 rounded-lg border-2 border-white flex items-center justify-center">
+                         <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20"><path d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"></path></svg>
+                       </div>
+                     }
+                   </div>
+                   <div class="flex-1">
+                      <div class="font-bold text-slate-900 text-base">{{ post.profiles?.name || 'Utilizador' }}</div>
+                      <div class="text-[10px] text-slate-400 font-black uppercase tracking-widest">{{ post.profiles?.is_expert ? 'Especialista' : 'Membro' }}</div>
+                   </div>
+                   <button class="p-2 text-slate-300 hover:text-slate-900 transition-colors">
+                      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 5h.01M12 12h.01M12 19h.01"/></svg>
+                   </button>
+                </div>
+                
+                @if (post.image_url) { 
+                  <div class="rounded-2xl overflow-hidden mb-5 bg-slate-50 border border-black/5 aspect-video overflow-hidden">
+                    <img [src]="post.image_url" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700">
+                  </div> 
+                }
+                
+                <p class="text-slate-600 text-sm font-medium leading-relaxed mb-6">
+                   {{ post.content }}
+                </p>
 
-                 <div class="flex items-center gap-6 text-slate-400 text-xs font-bold px-1 border-t border-slate-50 pt-3">
-                    <button class="flex items-center gap-1.5 hover:text-red-500 transition-colors group">
-                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-hover:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
+                <div class="flex items-center justify-between pt-5 border-t border-slate-50">
+                  <div class="flex items-center gap-6">
+                    <button class="flex items-center gap-2 text-slate-400 hover:text-red-500 transition-colors font-bold text-[11px] uppercase group">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 group-active:scale-125 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                        {{ post.likes }}
                     </button>
-                    <button class="flex items-center gap-1.5 hover:text-blue-500 transition-colors">
-                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                    <button class="flex items-center gap-2 text-slate-400 hover:text-blue-500 transition-colors font-bold text-[11px] uppercase">
+                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                        Comentar
                     </button>
-                    <button class="ml-auto hover:text-slate-600">
-                       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
-                    </button>
-                 </div>
-              </div>
-           }
-         </div>
-      </div>
+                  </div>
+                  <button class="text-slate-300 hover:text-blue-600 transition-colors">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
+                  </button>
+                </div>
+             </div>
+          }
+        </div>
+      </section>
 
       <!-- Community Features (Optional) -->
       @if (authService.isLoggedIn()) {
@@ -887,14 +841,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     // Load Social Feed
     this.loadFeed();
 
-    // Simulate live fluctuation of users
-    this.countInterval = setInterval(() => {
-      const change = Math.floor(Math.random() * 5) - 2; // -2 to +2
-      this.onlineCount.update(c => {
-        const newVal = c + change;
-        return newVal > 45 ? newVal : 45; // Min 45
-      });
-    }, 4000);
+
   }
 
   ngOnDestroy() {
@@ -1179,10 +1126,12 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
   }
 
+  async startPixPayment() {
+    alert('Funcionalidade PIX real em manutenção. Por favor, utilize Cartão via Stripe.');
+  }
+
   async finishDeposit() {
-    // This is still kept if we want to handle success callback in-app, 
-    // but usually Stripe redirects back to successUrl.
-    // For now, Stripe handled the balance via webhook.
+    // Webhook handle
   }
 
   openPlans() {

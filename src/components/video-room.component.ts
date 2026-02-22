@@ -569,10 +569,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
     this.addMessage({ sender: 'me', text, type: 'text', time: new Date() });
     this.currentMessage.set('');
 
-    // Auto-reply simulation
-    setTimeout(() => {
-      this.addMessage({ sender: 'expert', text: 'Entendido. Pode mostrar o problema de outro ângulo?', type: 'text', time: new Date() });
-    }, 3000);
+
   }
 
   addMessage(msg: ChatMessage) {
@@ -657,10 +654,7 @@ export class VideoRoomComponent implements OnInit, OnDestroy {
   }
 
   showPlans() {
-    const formatted5 = this.currencyService.formatSimple(5);
-    const formatted15 = this.currencyService.formatSimple(15);
-    const formatted30 = this.currencyService.formatSimple(30);
-    alert(`Planos Premium: \n1. Bronze: ${formatted5}/mês (10 min)\n2. Prata: ${formatted15}/mês (40 min)\n3. Ouro: ${formatted30}/mês (Horas Ilimitadas)\n\nEm breve disponível para subscrição direta!`);
+    this.router.navigate(['/plans']);
   }
 
   scrollToBottom() {

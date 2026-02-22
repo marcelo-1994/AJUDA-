@@ -44,21 +44,7 @@ export class PaymentGatewayService {
   }
 
   /**
-   * Legacy method for simulation - should be replaced by createStripeCheckout in UI.
+   * Stripe Checkout is now the primary payment method.
+   * PIX simulation has been removed to encourage real integration.
    */
-  async processCreditCard(amount: number, card: CreditCardData): Promise<boolean> {
-    // Simulation kept for compatibility during transition if needed
-    return true;
-  }
-
-  /**
-   * Simulates checking PIX status (polling)
-   */
-  async verifyPixPayment(txId: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve(true);
-      }, 2000);
-    });
-  }
 }
