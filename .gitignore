@@ -31,3 +31,6 @@ dist-ssr
 .temp_ag_kit
 temp
 tmp
+
+.vercel
+.env*.local
